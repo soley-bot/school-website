@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/lib/database.types'
 import {
   HomeIcon,
@@ -10,13 +10,15 @@ import {
   AcademicCapIcon,
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
-  BeakerIcon
+  BeakerIcon,
+  PencilSquareIcon
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
+  { name: 'Homepage', href: '/admin/homepage', icon: PencilSquareIcon },
   { name: 'News', href: '/admin/news', icon: NewspaperIcon },
   { name: 'Academics', href: '/admin/academics', icon: AcademicCapIcon },
   { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
@@ -35,7 +37,10 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClientComponentClient<Database>()
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     if (PUBLIC_PATHS.includes(pathname)) {
@@ -57,8 +62,15 @@ export default function AdminLayout({
   }, [router, supabase, pathname])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/admin/login')
+    try {
+      await supabase.auth.signOut()
+      router.push('/admin/login')
+      router.refresh()
+      // Force a hard refresh to clear all client state
+      window.location.href = '/admin/login'
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   // If it's a public path, render without the admin layout

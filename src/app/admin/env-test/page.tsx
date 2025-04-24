@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 type TestResult = {
   supabaseUrl: boolean
@@ -25,7 +25,10 @@ export default function EnvTestPage() {
       setLoading(true)
       setError(null)
       try {
-        const supabase = createClientComponentClient()
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
         
         // Test environment variables
         const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL

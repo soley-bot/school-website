@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 export function SupabaseTest() {
   const [status, setStatus] = useState<'loading' | 'connected' | 'error'>('loading')
@@ -10,7 +10,10 @@ export function SupabaseTest() {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        const supabase = createClientComponentClient()
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
         const { error } = await supabase.auth.getSession()
         
         if (error) {
