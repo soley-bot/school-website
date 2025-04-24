@@ -44,15 +44,15 @@ export function Navigation() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 justify-between items-center">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="relative h-12 w-48 inline-block">
               <Image
                 src="/images/logo.png"
                 alt="Language School Logo"
-                width={50}
-                height={50}
-                className="h-12 w-auto"
+                fill
+                className="object-contain"
+                priority
+                quality={100}
               />
-              <span className="ml-3 text-xl font-bold text-[#2596be]">Language School</span>
             </Link>
           </div>
 
@@ -87,7 +87,7 @@ export function Navigation() {
                           leaveFrom="opacity-100 translate-y-0"
                           leaveTo="opacity-0 translate-y-1"
                         >
-                          <Menu.Items className="absolute left-1/2 z-10 mt-2 w-64 -translate-x-1/2 transform rounded-lg bg-white shadow-lg focus:outline-none">
+                          <Menu.Items className="absolute left-1/2 z-50 mt-2 w-64 -translate-x-1/2 transform rounded-lg bg-white shadow-lg focus:outline-none">
                             <div className="py-2">
                               {academics.map((item) => (
                                 <Menu.Item key={item.name}>

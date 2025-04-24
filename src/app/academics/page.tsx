@@ -1,95 +1,102 @@
 interface Program {
   name: string
   description: string
-  grades: string
+  href: string
   features: string[]
 }
 
 const programs: Program[] = [
   {
-    name: 'Elementary Education',
-    description: 'A strong foundation in core subjects with emphasis on creativity and critical thinking.',
-    grades: 'Grades K-5',
+    name: 'General English Program',
+    description: 'Comprehensive English language course designed for learners at all levels, from beginners to advanced students.',
+    href: '/academics/general-english',
     features: [
-      'Small class sizes',
-      'Experienced teachers',
-      'Hands-on learning',
+      'Small class sizes for personalized attention',
+      'Native English-speaking teachers',
+      'Focus on all language skills',
       'Regular progress assessments',
     ],
   },
   {
-    name: 'Middle School',
-    description: 'Comprehensive curriculum preparing students for high school success.',
-    grades: 'Grades 6-8',
+    name: 'IELTS Preparation',
+    description: 'Specialized program to help students achieve their target scores in the IELTS examination.',
+    href: '/academics/ielts-preparation',
     features: [
-      'Advanced math and science',
-      'Language arts and literature',
-      'Social studies and history',
-      'Arts and music programs',
+      'Expert IELTS instructors',
+      'Practice tests and feedback',
+      'Comprehensive test strategies',
+      'Small group tutorials',
     ],
   },
   {
-    name: 'High School',
-    description: 'College preparatory program with diverse academic and extracurricular opportunities.',
-    grades: 'Grades 9-12',
+    name: 'General Chinese Program',
+    description: 'Learn Mandarin Chinese from basics to advanced levels with our comprehensive language program.',
+    href: '/academics/general-chinese',
     features: [
-      'AP and Honors courses',
-      'College counseling',
-      'STEM programs',
-      'Athletics and clubs',
+      'Native Chinese teachers',
+      'Character writing workshops',
+      'Cultural immersion activities',
+      'Flexible class schedules',
+    ],
+  },
+  {
+    name: 'Chinese for Primary Students',
+    description: 'Fun and interactive Chinese language program specially designed for young learners aged 6-12.',
+    href: '/academics/chinese-primary',
+    features: [
+      'Age-appropriate curriculum',
+      'Interactive learning activities',
+      'Small class sizes',
+      'Regular progress reports',
     ],
   },
 ]
 
 export default function AcademicsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="py-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-semibold leading-7 text-indigo-600">Academic Programs</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Comprehensive Education for Every Student
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              Our academic programs are designed to challenge and inspire students at every level,
-              preparing them for success in college and beyond.
-            </p>
-          </div>
+    <div className="min-h-screen bg-white">
+      <section className="relative bg-gradient-to-r from-[#2596be] to-[#1a7290] text-white py-20">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Language Programs</h1>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto">
+            Discover our comprehensive language programs designed to help you achieve your learning goals
+          </p>
+        </div>
+      </section>
 
-          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              {programs.map((program) => (
-                <div key={program.name} className="flex flex-col">
-                  <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
-                    {program.name}
-                  </dt>
-                  <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                    <p className="flex-auto">{program.description}</p>
-                    <p className="mt-4 font-semibold">{program.grades}</p>
-                    <ul className="mt-4 space-y-2">
-                      {program.features.map((feature) => (
-                        <li key={feature} className="flex gap-x-3">
-                          <svg
-                            className="h-6 w-5 flex-none text-indigo-600"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              ))}
-            </dl>
+      <main className="py-16">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {programs.map((program) => (
+              <a
+                key={program.name}
+                href={program.href}
+                className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow duration-300"
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">{program.name}</h2>
+                <p className="text-gray-600 mb-6">{program.description}</p>
+                <ul className="space-y-3">
+                  {program.features.map((feature) => (
+                    <li key={feature} className="flex items-start">
+                      <svg
+                        className="h-5 w-5 text-[#2596be] mr-2 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span className="text-gray-600">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </a>
+            ))}
           </div>
         </div>
       </main>

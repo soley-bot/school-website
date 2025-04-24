@@ -1,108 +1,151 @@
-import { UserGroupIcon, ChatBubbleLeftRightIcon, BookOpenIcon } from '@heroicons/react/24/outline'
-import Image from 'next/image'
+import { AcademicCapIcon, ClockIcon, UserGroupIcon, BookOpenIcon, GlobeAltIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
+import ProgramHero from '@/components/ui/ProgramHero';
+import ProgramFeatures from '@/components/ui/ProgramFeatures';
+import ProgramDetails from '@/components/ui/ProgramDetails';
+import ProgramSchedule from '@/components/ui/ProgramSchedule';
+import ProgramCTA from '@/components/ui/ProgramCTA';
 
 export default function GeneralChinesePage() {
+  const features = [
+    {
+      icon: <UserGroupIcon />,
+      title: 'Small Class Sizes',
+      description: 'Maximum 8 students per class for optimal learning and individual attention.'
+    },
+    {
+      icon: <AcademicCapIcon />,
+      title: 'Native Teachers',
+      description: 'Learn from experienced native Chinese speakers with professional teaching qualifications.'
+    },
+    {
+      icon: <ClockIcon />,
+      title: 'Flexible Schedule',
+      description: 'Choose from morning, evening, or weekend classes to suit your availability.'
+    },
+    {
+      icon: <BookOpenIcon />,
+      title: 'Character Mastery',
+      description: 'Systematic approach to learning Chinese characters through writing and recognition.'
+    },
+    {
+      icon: <ChatBubbleBottomCenterTextIcon />,
+      title: 'Pronunciation Focus',
+      description: 'Special attention to tones and pronunciation with audio-visual learning tools.'
+    },
+    {
+      icon: <GlobeAltIcon />,
+      title: 'Cultural Integration',
+      description: 'Learn about Chinese culture, customs, and traditions as part of the curriculum.'
+    }
+  ];
+
+  const levels = [
+    {
+      title: 'Beginner Chinese',
+      badge: 'HSK 1-2',
+      duration: '12 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'None',
+      description: 'Start your journey in Chinese language with our foundational course. Learn basic communication skills, essential characters, and proper pronunciation.',
+      outcomes: [
+        'Master Pinyin and basic tones',
+        'Learn 150+ common characters',
+        'Handle basic daily conversations',
+        'Understand simple written texts',
+        'Write basic Chinese characters',
+        'Grasp fundamental grammar patterns'
+      ]
+    },
+    {
+      title: 'Intermediate Chinese',
+      badge: 'HSK 3-4',
+      duration: '12 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'HSK 2 or equivalent',
+      description: 'Build on your foundation with more complex language skills. Expand your vocabulary and improve your fluency in various situations.',
+      outcomes: [
+        'Master 300+ new characters',
+        'Handle everyday conversations fluently',
+        'Read intermediate texts',
+        'Write short essays and messages',
+        'Understand Chinese media',
+        'Express opinions and emotions'
+      ]
+    },
+    {
+      title: 'Advanced Chinese',
+      badge: 'HSK 5-6',
+      duration: '12 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'HSK 4 or equivalent',
+      description: 'Achieve professional proficiency in Chinese. Focus on advanced grammar, business Chinese, and literary appreciation.',
+      outcomes: [
+        'Master 500+ advanced characters',
+        'Engage in complex discussions',
+        'Read newspapers and literature',
+        'Write professional documents',
+        'Understand various dialects',
+        'Navigate business contexts'
+      ]
+    }
+  ];
+
+  const scheduleOptions = [
+    {
+      title: 'Morning Classes',
+      time: '9:00 AM - 12:00 PM',
+      days: 'Monday through Friday',
+      features: [
+        'Start your day with immersive learning',
+        'Character writing workshops',
+        'Conversation practice sessions',
+        'Cultural activities included',
+        'Online review materials'
+      ]
+    },
+    {
+      title: 'Evening Classes',
+      time: '6:30 PM - 9:30 PM',
+      days: 'Monday through Friday',
+      features: [
+        'Perfect for working professionals',
+        'Focus on practical communication',
+        'Interactive learning activities',
+        'Homework support available',
+        'Weekend cultural events'
+      ]
+    },
+    {
+      title: 'Weekend Program',
+      time: '10:00 AM - 4:00 PM',
+      days: 'Saturdays and Sundays',
+      features: [
+        'Intensive weekend learning',
+        'Extended practice time',
+        'Cultural immersion activities',
+        'Group projects and presentations',
+        'Online weekday support'
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white py-12 sm:py-16">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            General Chinese Program
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Master Mandarin Chinese with our structured curriculum designed for adult learners, from basic conversation to advanced proficiency.
-          </p>
-        </div>
-
-        <div className="mt-16 relative">
-          <div className="aspect-[16/9] w-full overflow-hidden rounded-xl bg-gray-100">
-            <Image
-              src="/images/chinese-class.jpg"
-              alt="Chinese language class"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <UserGroupIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Small Class Sizes
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Maximum of 8 students per class for optimal learning and practice.</p>
-              </dd>
-            </div>
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <ChatBubbleLeftRightIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Native Teachers
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Learn from experienced native Chinese speakers who understand your learning needs.</p>
-              </dd>
-            </div>
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <BookOpenIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Complete Curriculum
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Comprehensive coverage of speaking, listening, reading, and writing with cultural elements.</p>
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24">
-          <div className="rounded-2xl bg-gray-50 p-8">
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900">Program Details</h2>
-            <dl className="mt-8 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Duration</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">16 weeks per level</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Class Size</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">4-8 students</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Levels</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">Beginner to Advanced</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Schedule</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">Flexible time slots</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Start Your Chinese Journey Today</h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Contact us to schedule a placement test and begin your path to Chinese fluency.
-          </p>
-          <div className="mt-10">
-            <a
-              href="/contact"
-              className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-            >
-              Contact Us
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    <main className="min-h-screen bg-white">
+      <ProgramHero
+        title="General Chinese Program"
+        description="Master Mandarin Chinese with our comprehensive program designed for effective communication and cultural understanding"
+      />
+      
+      <ProgramFeatures features={features} />
+      
+      <ProgramDetails levels={levels} />
+      
+      <ProgramSchedule scheduleOptions={scheduleOptions} />
+      
+      <ProgramCTA
+        title="Start Your Chinese Journey"
+        description="Join our Chinese language program and open doors to new opportunities. Our experienced teachers are ready to guide you on your learning journey."
+      />
+    </main>
+  );
 } 

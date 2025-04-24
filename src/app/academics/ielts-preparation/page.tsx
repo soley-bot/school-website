@@ -1,95 +1,151 @@
-import { AcademicCapIcon, ChartBarIcon, BookOpenIcon } from '@heroicons/react/24/outline'
+import { AcademicCapIcon, ClockIcon, UserGroupIcon, BookOpenIcon, ChartBarIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import ProgramHero from '@/components/ui/ProgramHero';
+import ProgramFeatures from '@/components/ui/ProgramFeatures';
+import ProgramDetails from '@/components/ui/ProgramDetails';
+import ProgramSchedule from '@/components/ui/ProgramSchedule';
+import ProgramCTA from '@/components/ui/ProgramCTA';
 
 export default function IELTSPreparationPage() {
+  const features = [
+    {
+      icon: <UserGroupIcon />,
+      title: 'Small Class Sizes',
+      description: 'Maximum 10 students per class for intensive IELTS preparation and personalized feedback.'
+    },
+    {
+      icon: <AcademicCapIcon />,
+      title: 'Expert IELTS Instructors',
+      description: 'Learn from certified IELTS examiners and experienced test preparation specialists.'
+    },
+    {
+      icon: <ClockIcon />,
+      title: 'Flexible Schedule',
+      description: 'Choose from morning, evening, or weekend classes to fit your study plan.'
+    },
+    {
+      icon: <BookOpenIcon />,
+      title: 'Complete Test Coverage',
+      description: 'Comprehensive preparation for all four IELTS modules: Listening, Reading, Writing, and Speaking.'
+    },
+    {
+      icon: <ChartBarIcon />,
+      title: 'Practice Tests',
+      description: 'Regular mock tests and detailed performance analysis to track your progress.'
+    },
+    {
+      icon: <TrophyIcon />,
+      title: 'Success Guarantee',
+      description: 'Our proven methodology helps students achieve their target IELTS band scores.'
+    }
+  ];
+
+  const levels = [
+    {
+      title: 'Foundation IELTS',
+      badge: '4.0-5.5',
+      duration: '8 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'Basic English proficiency',
+      description: 'Perfect for students aiming to achieve IELTS bands 5.0-6.0. This course focuses on building fundamental test-taking strategies and improving basic language skills.',
+      outcomes: [
+        'Understand IELTS test format and requirements',
+        'Develop basic test-taking strategies',
+        'Improve essential grammar and vocabulary',
+        'Practice basic writing tasks for IELTS',
+        'Build confidence in speaking',
+        'Learn time management skills'
+      ]
+    },
+    {
+      title: 'Intermediate IELTS',
+      badge: '5.5-7.0',
+      duration: '8 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'IELTS 5.0 or equivalent',
+      description: 'Designed for students targeting bands 6.0-7.0. This course enhances academic language skills and develops advanced test strategies.',
+      outcomes: [
+        'Master complex IELTS task types',
+        'Enhance academic vocabulary',
+        'Improve writing structure and coherence',
+        'Develop critical thinking skills',
+        'Practice advanced speaking strategies',
+        'Learn detailed performance analysis'
+      ]
+    },
+    {
+      title: 'Advanced IELTS',
+      badge: '7.0-9.0',
+      duration: '8 weeks',
+      weeklyHours: '12 hours',
+      prerequisites: 'IELTS 6.5 or equivalent',
+      description: 'For students aiming for bands 7.0 and above. This intensive course focuses on achieving excellence in all test components.',
+      outcomes: [
+        'Perfect advanced writing techniques',
+        'Master complex academic vocabulary',
+        'Develop sophisticated speaking skills',
+        'Excel in high-level reading comprehension',
+        'Achieve near-perfect listening scores',
+        'Learn examiner-level strategies'
+      ]
+    }
+  ];
+
+  const scheduleOptions = [
+    {
+      title: 'Morning Intensive',
+      time: '8:30 AM - 11:30 AM',
+      days: 'Monday through Friday',
+      features: [
+        'Start your day with focused study',
+        'Complete mock tests and analysis',
+        'One-on-one feedback sessions',
+        'Additional speaking practice',
+        'Access to online resources'
+      ]
+    },
+    {
+      title: 'Evening Program',
+      time: '6:30 PM - 9:30 PM',
+      days: 'Monday through Friday',
+      features: [
+        'Perfect for working professionals',
+        'Intensive practice sessions',
+        'Regular progress assessments',
+        'Weekend mock tests included',
+        'Flexible attendance options'
+      ]
+    },
+    {
+      title: 'Weekend Course',
+      time: '9:00 AM - 3:00 PM',
+      days: 'Saturdays and Sundays',
+      features: [
+        'Intensive weekend preparation',
+        'Full mock tests each weekend',
+        'Comprehensive feedback sessions',
+        'Small group tutorials',
+        'Online weekday support'
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white py-12 sm:py-16">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            IELTS Preparation Program
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Comprehensive preparation for the International English Language Testing System (IELTS) exam, designed to help you achieve your target score.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <AcademicCapIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Expert Instructors
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Learn from certified IELTS instructors with proven track records of student success.</p>
-              </dd>
-            </div>
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <ChartBarIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Practice Tests
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Regular mock exams and detailed feedback to track your progress and improve your performance.</p>
-              </dd>
-            </div>
-            <div className="flex flex-col">
-              <dt className="text-base font-semibold leading-7 text-gray-900">
-                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                  <BookOpenIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                </div>
-                Complete Coverage
-              </dt>
-              <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                <p className="flex-auto">Comprehensive preparation for all four IELTS modules: Listening, Reading, Writing, and Speaking.</p>
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24">
-          <div className="rounded-2xl bg-gray-50 p-8">
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900">Course Structure</h2>
-            <dl className="mt-8 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Duration</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">8 weeks intensive</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Class Size</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">Maximum 10 students</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Prerequisites</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">Intermediate English level</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold leading-6 text-gray-600">Materials</dt>
-                <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">All included</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Ready to Achieve Your Target Score?</h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Contact us to schedule a placement test and start your IELTS preparation journey.
-          </p>
-          <div className="mt-10">
-            <a
-              href="/contact"
-              className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-            >
-              Contact Us
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    <main className="min-h-screen bg-white">
+      <ProgramHero
+        title="IELTS Preparation Program"
+        description="Achieve your target IELTS score with our comprehensive preparation program designed by expert instructors and certified examiners"
+      />
+      
+      <ProgramFeatures features={features} />
+      
+      <ProgramDetails levels={levels} />
+      
+      <ProgramSchedule scheduleOptions={scheduleOptions} />
+      
+      <ProgramCTA
+        title="Ready to Achieve Your Target Score?"
+        description="Join our IELTS preparation program and get expert guidance to reach your desired band score. Our experienced instructors are here to help you succeed."
+      />
+    </main>
+  );
 } 
