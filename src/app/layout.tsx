@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "School Website",
+  title: "STANFORD American School",
   description: "A modern school website built with Next.js",
 };
 
@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full bg-gray-50">
-      <body className={`${inter.className} min-h-full flex flex-col`}>
+    <html lang="en" className="h-full bg-white light">
+      <body className={`${inter.className} min-h-full flex flex-col bg-white text-gray-900`}>
         <Navigation />
         <main className="flex-grow">{children}</main>
         <Footer />

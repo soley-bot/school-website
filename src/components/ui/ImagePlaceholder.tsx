@@ -32,7 +32,7 @@ export function ImagePlaceholder({
   const imageSrc = customImage || defaultImages[aspectRatio]
 
   return (
-    <div className={`relative ${aspectRatioClasses[aspectRatio]} ${className} overflow-hidden rounded-xl`}>
+    <div className={`relative ${aspectRatioClasses[aspectRatio]} ${className} overflow-hidden rounded-xl bg-white`}>
       <Image
         src={imageSrc}
         alt={title}
@@ -40,10 +40,10 @@ export function ImagePlaceholder({
         className="object-cover"
         priority={false}
       />
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 p-4 text-center">
-        <div className="text-lg font-semibold text-white">{title}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/10 p-4 text-center">
+        <div className="text-lg font-semibold text-gray-900">{title}</div>
         {subtitle && (
-          <div className="text-sm text-white/80 mt-1">{subtitle}</div>
+          <div className="text-sm text-gray-700 mt-1">{subtitle}</div>
         )}
       </div>
     </div>

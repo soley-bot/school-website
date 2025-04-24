@@ -75,7 +75,7 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative isolate overflow-hidden bg-gradient-to-b from-primary-100/20">
+      <div className="relative isolate overflow-hidden bg-white">
         <Container>
           <div className="mx-auto max-w-7xl py-20 lg:py-32 lg:grid lg:grid-cols-5 lg:gap-x-16">
             <div className="relative px-6 lg:px-0 lg:pt-8 lg:col-span-2">
@@ -110,10 +110,10 @@ export default function Home() {
             </div>
             <div className="mt-16 lg:mt-0 lg:col-span-3 px-6 lg:px-0">
               <div className="shadow-xl rounded-2xl overflow-hidden">
-                <div className="bg-primary-500">
+                <div className="bg-white">
                   <div className="relative">
                     <div>
-                      <div className="overflow-hidden bg-gray-900">
+                      <div className="overflow-hidden">
                         <ImagePlaceholder
                           title="School Campus"
                           subtitle="Modern facilities and beautiful grounds"
