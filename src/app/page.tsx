@@ -1,50 +1,70 @@
 import { Container } from '@/components/ui/Container'
 import { Section } from '@/components/ui/Section'
-import { ImagePlaceholder } from '@/components/ui/ImagePlaceholder'
 import Link from 'next/link'
-import { CalendarIcon, AcademicCapIcon, UserGroupIcon, BookOpenIcon } from '@heroicons/react/24/outline'
+import { 
+  UserGroupIcon,
+  ChatBubbleLeftRightIcon,
+  ClockIcon,
+  UserIcon,
+} from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
-const quickLinks = [
-  { name: 'Undergraduate Programs', href: '/academics/undergraduate', icon: AcademicCapIcon },
-  { name: 'Admissions', href: '/admissions', icon: UserGroupIcon },
-  { name: 'Student Life', href: '/student-life', icon: CalendarIcon },
-  { name: 'Library Resources', href: '/library', icon: BookOpenIcon },
-]
-
-const latestNews = [
+const features = [
   {
-    id: 1,
-    title: 'Annual Science Fair Winners Announced',
-    description: 'Congratulations to all participants in this year\'s Science Fair. The projects demonstrated exceptional creativity and scientific thinking.',
-    date: 'Mar 16, 2024',
-    datetime: '2024-03-16',
-    category: 'Academic',
-    imageUrl: '/images/classroomplaceholder.jpg'
+    name: 'Expert Native Teachers',
+    description: 'Learn from certified native speakers with years of teaching experience.',
+    icon: UserIcon,
   },
   {
-    id: 2,
-    title: 'New Sports Complex Opening Soon',
-    description: 'We\'re excited to announce that our new state-of-the-art sports complex will be opening next month.',
-    date: 'Mar 10, 2024',
-    datetime: '2024-03-10',
-    category: 'Facilities',
-    imageUrl: '/images/schoolbuildingplaceholder.jpg'
+    name: 'Small Class Sizes',
+    description: 'Personalized attention with maximum 8 students per class.',
+    icon: UserGroupIcon,
   },
   {
-    id: 3,
-    title: 'Student Art Exhibition',
-    description: 'Join us for the opening of our student art exhibition, showcasing incredible works from students across all grades.',
-    date: 'Mar 5, 2024',
-    datetime: '2024-03-05',
-    category: 'Arts',
-    imageUrl: '/images/studentsplaceholder.jpg'
+    name: 'Flexible Schedule',
+    description: 'Morning, afternoon, and evening classes to fit your schedule.',
+    icon: ClockIcon,
+  },
+  {
+    name: 'Conversation Focus',
+    description: 'Emphasis on practical speaking skills from day one.',
+    icon: ChatBubbleLeftRightIcon,
   },
 ]
 
-const academicPrograms = [
+const programs = [
   {
-    name: 'Science & Technology',
-    description: 'Cutting-edge programs in Computer Science, Engineering, and Natural Sciences.',
+    name: 'General English Program',
+    description: 'Comprehensive English course covering speaking, listening, reading, and writing skills for all levels.',
+    features: [
+      'Native English teachers',
+      'Small class sizes (max 8 students)',
+      'Flexible scheduling options',
+      'Regular progress assessments'
+    ],
+    level: 'All Levels',
+    duration: '12 weeks',
+    price: '$299',
+    href: '/courses/english',
+    icon: (props: React.ComponentProps<'svg'>) => (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+      </svg>
+    ),
+  },
+  {
+    name: 'General Chinese Program',
+    description: 'Master Mandarin Chinese with our structured curriculum designed for adult learners.',
+    features: [
+      'Native Chinese teachers',
+      'Focus on practical communication',
+      'Character writing practice',
+      'Cultural immersion activities'
+    ],
+    level: 'Beginner to Advanced',
+    duration: '16 weeks',
+    price: '$349',
+    href: '/courses/chinese',
     icon: (props: React.ComponentProps<'svg'>) => (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
@@ -52,17 +72,18 @@ const academicPrograms = [
     ),
   },
   {
-    name: 'Business & Economics',
-    description: 'Comprehensive business education with focus on global markets and entrepreneurship.',
-    icon: (props: React.ComponentProps<'svg'>) => (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Arts & Humanities',
-    description: 'Rich programs in Literature, Fine Arts, and Cultural Studies.',
+    name: 'Chinese for Primary Students',
+    description: 'Fun and interactive Chinese language program specially designed for young learners.',
+    features: [
+      'Age-appropriate teaching methods',
+      'Interactive learning activities',
+      'Regular parent updates',
+      'Homework support'
+    ],
+    level: 'Primary Students',
+    duration: '10 weeks',
+    price: '$249',
+    href: '/courses/chinese-kids',
     icon: (props: React.ComponentProps<'svg'>) => (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
@@ -71,198 +92,217 @@ const academicPrograms = [
   },
 ]
 
+const testimonials = [
+  {
+    content: 'The English program helped me improve my communication skills significantly. The teachers are very supportive.',
+    author: 'Sophea Chen',
+    role: 'English Program Student'
+  },
+  {
+    content: 'My child loves the Chinese primary program. The teaching methods are engaging and effective.',
+    author: 'Linda Thompson',
+    role: 'Parent of Primary Student'
+  },
+  {
+    content: 'The language immersion environment really helped me become fluent quickly.',
+    author: 'David Kim',
+    role: 'Former Student'
+  }
+]
+
 export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative isolate overflow-hidden bg-white">
-        <Container>
-          <div className="mx-auto max-w-7xl py-20 lg:py-32 lg:grid lg:grid-cols-5 lg:gap-x-16">
-            <div className="relative px-6 lg:px-0 lg:pt-8 lg:col-span-2">
-              <div className="mx-auto">
-                <div>
-                  <div className="mb-8">
-                    <a href="#" className="inline-flex">
-                      <span className="rounded-full bg-primary-600/10 px-4 py-1.5 text-sm font-semibold leading-6 text-primary-600 ring-1 ring-inset ring-primary-600/10">
-                        Latest News
-                      </span>
-                    </a>
-                  </div>
-                  <h1 className="text-5xl font-bold tracking-tight text-gray-900 lg:text-6xl mb-8">
-                    Empowering Minds, Shaping Futures
-                  </h1>
-                  <p className="text-xl leading-8 text-gray-600 mb-12">
-                    Welcome to our school where we nurture curiosity, foster creativity, and build tomorrow&apos;s leaders through excellence in education.
-                  </p>
-                  <div className="flex items-center gap-x-8">
-                    <Link
-                      href="/admissions"
-                      className="rounded-md bg-primary-600 px-5 py-3 text-base font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                    >
-                      Apply Now
-                    </Link>
-                    <Link href="/about" className="text-base font-semibold leading-6 text-gray-900 hover:text-primary-600">
-                      Learn more <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
-                </div>
+      <div className="relative pt-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text Content */}
+            <div>
+              <div className="mb-8 inline-flex rounded-full bg-[#2596be]/10 px-4 py-1.5">
+                <span className="text-sm font-semibold leading-6 text-[#2596be] ring-1 ring-inset ring-[#2596be]/20">
+                  New Classes Starting Soon
+                </span>
+              </div>
+              <h1 className="mt-8 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+                Master Languages with Confidence
+              </h1>
+              <p className="mt-6 text-lg leading-8 text-gray-600">
+                Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.
+              </p>
+              <div className="mt-10 flex items-center gap-x-6">
+                <Link
+                  href="/contact"
+                  className="rounded-md bg-[#2596be] px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-[#2596be]/90 transition-colors"
+                >
+                  Explore Courses
+                </Link>
+                <Link 
+                  href="/contact" 
+                  className="text-lg font-semibold leading-6 text-[#2596be] hover:text-[#2596be]/90 transition-colors"
+                >
+                  Free Trial Class <span aria-hidden="true">→</span>
+                </Link>
               </div>
             </div>
-            <div className="mt-16 lg:mt-0 lg:col-span-3 px-6 lg:px-0">
-              <div className="shadow-xl rounded-2xl overflow-hidden">
-                <div className="bg-white">
-                  <div className="relative">
-                    <div>
-                      <div className="overflow-hidden">
-                        <ImagePlaceholder
-                          title="School Campus"
-                          subtitle="Modern facilities and beautiful grounds"
-                          aspectRatio="video"
-                          className="shadow-xl"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+            {/* Image */}
+            <div className="relative">
+              <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100">
+                <Image
+                  src="/images/classroom.jpg"
+                  alt="Language classroom"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
             </div>
           </div>
-        </Container>
+        </div>
       </div>
 
-      {/* Quick Links Section */}
-      <Section className="bg-white py-12 sm:py-16">
+      {/* Programs Showcase Section */}
+      <Section className="relative -mt-8 pb-20 pt-16">
         <Container>
           <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {quickLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="relative flex items-center gap-x-6 rounded-lg p-4 hover:bg-gray-50"
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {programs.map((program) => (
+                <div
+                  key={program.name}
+                  className="relative overflow-hidden rounded-3xl bg-white shadow-lg transition-all hover:shadow-xl"
                 >
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-lg bg-primary-600">
-                    <link.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-primary-50 to-white opacity-50" />
+                  <div className="relative p-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-100">
+                        <program.icon className="h-6 w-6 text-primary-600" />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-primary-600">{program.level}</p>
+                        <p className="text-sm text-gray-500">{program.duration}</p>
+                      </div>
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-gray-900">{program.name}</h3>
+                    <p className="mt-2 text-gray-600">{program.description}</p>
+                    <div className="mt-6">
+                      <ul className="space-y-3">
+                        {program.features.map((feature, index) => (
+                          <li key={index} className="flex items-center gap-x-3 text-sm text-gray-600">
+                            <svg className="h-5 w-5 flex-none text-primary-600" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                            </svg>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="mt-8 flex items-center justify-between">
+                      <span className="text-2xl font-bold text-gray-900">{program.price}</span>
+                      <Link
+                        href={program.href}
+                        className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500"
+                      >
+                        Learn More
+                      </Link>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base font-semibold leading-7 text-gray-900">
-                      {link.name}
-                    </h3>
-                  </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
         </Container>
       </Section>
 
-      {/* Academic Programs Section */}
-      <Section
-        title="Academic Excellence"
-        description="Discover our comprehensive range of academic programs designed to nurture talent and inspire innovation."
-        className="bg-gray-50"
-      >
+      {/* Features Section */}
+      <Section className="bg-white py-24">
         <Container>
-          <div className="mx-auto mt-20 max-w-2xl lg:mt-24 lg:max-w-none">
-            <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-16 lg:max-w-none lg:grid-cols-3">
-              {academicPrograms.map((program) => (
-                <div key={program.name} className="flex flex-col">
-                  <dt className="text-lg font-semibold leading-7 text-gray-900">
-                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-600">
-                      <program.icon className="h-8 w-8 text-white" aria-hidden="true" />
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-base font-semibold leading-7 text-primary-600">Why Choose Us</h2>
+              <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Learn Languages The Smart Way
+              </p>
+              <p className="mt-6 text-lg leading-8 text-gray-600">
+                Our innovative approach combines expert instruction and proven methodologies to help you achieve fluency faster.
+              </p>
+            </div>
+            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-4">
+                {features.map((feature) => (
+                  <div key={feature.name} className="flex flex-col items-center text-center">
+                    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-primary-600/10">
+                      <feature.icon className="h-8 w-8 text-primary-600" aria-hidden="true" />
                     </div>
-                    {program.name}
-                  </dt>
-                  <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                    <p className="flex-auto">{program.description}</p>
-                    <p className="mt-6">
-                      <Link href="/academics" className="text-sm font-semibold text-primary-600 hover:text-primary-500">
-                        Learn more <span aria-hidden="true">→</span>
-                      </Link>
-                    </p>
-                  </dd>
-                </div>
-              ))}
-            </dl>
+                    <dt className="text-xl font-semibold leading-7 text-gray-900">
+                      {feature.name}
+                    </dt>
+                    <dd className="mt-4 flex flex-auto flex-col leading-7 text-gray-600">
+                      <p className="flex-auto">{feature.description}</p>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
         </Container>
       </Section>
 
-      {/* Latest News Section */}
-      <Section
-        title="Latest News & Events"
-        description="Stay updated with the latest happenings at our school"
-        className="bg-white"
-      >
+      {/* Testimonials Section */}
+      <Section className="bg-white py-24">
         <Container>
-          <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-12 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-            {latestNews.map((article) => (
-              <article key={article.id} className="flex flex-col items-start">
-                <div className="relative w-full">
-                  <div className="aspect-video w-full rounded-2xl bg-gray-100 object-cover">
-                    <ImagePlaceholder
-                      title={article.title}
-                      subtitle={article.category}
-                      aspectRatio="video"
-                      customImage={article.imageUrl}
-                    />
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-xl text-center">
+              <h2 className="text-base font-semibold leading-7 text-primary-600">Testimonials</h2>
+              <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+                What Our Students Say
+              </p>
+            </div>
+            <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="relative bg-primary-50/50 shadow-sm rounded-2xl p-8">
+                    <figure className="h-full flex flex-col justify-between">
+                      <blockquote className="text-gray-900">
+                        <p className="text-lg leading-8">&ldquo;{testimonial.content}&rdquo;</p>
+                      </blockquote>
+                      <figcaption className="mt-6 flex items-center gap-x-4">
+                        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                          <UserIcon className="h-6 w-6 text-primary-600" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{testimonial.author}</div>
+                          <div className="text-primary-600">{testimonial.role}</div>
+                        </div>
+                      </figcaption>
+                    </figure>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                    <div className="flex items-center gap-x-4 text-sm">
-                      <time dateTime={article.datetime} className="text-white">
-                        {article.date}
-                      </time>
-                      <span className="relative z-10 rounded-full bg-white/10 px-3 py-1.5 font-medium text-white">
-                        {article.category}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="group relative">
-                  <h3 className="mt-6 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
-                    <Link href="#">
-                      <span className="absolute inset-0" />
-                      {article.title}
-                    </Link>
-                  </h3>
-                  <p className="mt-4 line-clamp-3 text-base leading-7 text-gray-600">{article.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-          <div className="mt-16 text-center">
-            <Link
-              href="/news"
-              className="rounded-md bg-white px-5 py-3 text-base font-semibold text-primary-600 shadow-sm ring-1 ring-inset ring-primary-600 hover:bg-primary-50"
-            >
-              View All News
-            </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </Container>
       </Section>
 
-      {/* Call to Action Section */}
-      <Section className="bg-primary-600">
+      {/* CTA Section */}
+      <Section className="bg-primary-900 py-16">
         <Container>
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to Begin Your Journey?
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white">
+              Ready to Start Your Language Journey?
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-primary-100">
-              Take the first step towards an exceptional education. Apply now or contact us to learn more about our programs.
+              Join our language learning community and transform your future through effective language education.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-8">
-              <Link
-                href="/admissions"
-                className="rounded-md bg-white px-5 py-3 text-base font-semibold text-primary-600 shadow-sm hover:bg-primary-50"
-              >
-                Apply Now
-              </Link>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                 href="/contact"
-                className="text-base font-semibold leading-6 text-white hover:text-primary-100"
+                className="rounded-md bg-primary-400 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-300 transition-colors"
               >
-                Contact Us <span aria-hidden="true">→</span>
+                Get Started Today
+              </Link>
+              <Link href="/courses" className="text-lg font-semibold leading-6 text-primary-200 hover:text-primary-300 transition-colors">
+                View All Courses <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>
