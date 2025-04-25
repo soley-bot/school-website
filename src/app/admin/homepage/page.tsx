@@ -2,6 +2,9 @@
 
 import HeroSection from './components/HeroSection'
 import ProgramsSection from './components/ProgramsSection'
+import TermBannerSection from './components/TermBannerSection'
+import UpcomingEventsSection from './components/UpcomingEventsSection'
+import FacilitiesSection from './components/FacilitiesSection'
 
 export default function HomepageAdmin() {
   return (
@@ -11,6 +14,12 @@ export default function HomepageAdmin() {
       </div>
 
       <div className="space-y-8">
+        {/* Term Banner Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Term Banner</h2>
+          <TermBannerSection />
+        </div>
+
         {/* Hero Section */}
         <div>
           <h2 className="text-lg font-medium text-gray-700 mb-4">Hero Section</h2>
@@ -21,6 +30,18 @@ export default function HomepageAdmin() {
         <div>
           <h2 className="text-lg font-medium text-gray-700 mb-4">Programs Section</h2>
           <ProgramsSection />
+        </div>
+
+        {/* Upcoming Events Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Upcoming Events Section</h2>
+          <UpcomingEventsSection />
+        </div>
+
+        {/* Facilities Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Facilities Section</h2>
+          <FacilitiesSection />
         </div>
       </div>
     </div>

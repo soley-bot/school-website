@@ -1,41 +1,19 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 
-// Create a separate client component for the login form
-function LoginForm() {
+export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      if (authError) throw authError
-      if (session) {
-        const redirectTo = searchParams.get('redirectTo') || '/admin'
-        router.push(redirectTo)
-        router.refresh()
-      }
-    } catch (error) {
-      console.error('Auth check error:', error)
-    }
-  }
-
-  const handleLogin = async (e: React.FormEvent) => {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -46,20 +24,12 @@ function LoginForm() {
       if (error) throw error
 
       if (data.session) {
-        // Get the redirect URL from query params or default to /admin
-        const redirectTo = searchParams.get('redirectTo') || '/admin'
-        
-        toast.success('Logged in successfully!')
-        
-        // Force a hard refresh to ensure all client state is updated
-        window.location.href = redirectTo
-      } else {
-        throw new Error('No session created after login')
+        toast.success('Logged in successfully')
+        router.push('/admin')
       }
-    } catch (error: Error | unknown) {
-      console.error('Login error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to login')
-      toast.error('Failed to login')
+    } catch (error: any) {
+      console.error('Error logging in:', error)
+      toast.error(error.message || 'Failed to log in')
     } finally {
       setIsLoading(false)
     }
@@ -70,15 +40,10 @@ function LoginForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to Admin Panel
+            Admin Login
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-              {error}
-            </div>
-          )}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -118,9 +83,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#2596be] hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2596be] ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#2596be] hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2596be]"
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -128,14 +91,5 @@ function LoginForm() {
         </form>
       </div>
     </div>
-  )
-}
-
-// Main page component with Suspense boundary
-export default function Login() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
-    </Suspense>
   )
 } 

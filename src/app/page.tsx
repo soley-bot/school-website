@@ -4,6 +4,9 @@ import Image from 'next/image'
 import type { HeroContent } from '@/lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
 import ProgramsSection from '../components/ProgramsSection'
+import TermBanner from '@/components/ui/TermBanner'
+import FacilitiesSection from '@/components/FacilitiesSection'
+import UpcomingEventsSection from '@/components/UpcomingEventsSection'
 
 interface Cookie {
   name: string
@@ -85,14 +88,89 @@ async function getHeroContent() {
   }
 }
 
+async function getTermBanner() {
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => {
+            return cookieStore.getAll().map((cookie): Cookie => ({
+              name: cookie.name,
+              value: cookie.value,
+            }))
+          },
+          setAll: (cookies: Cookie[]) => {
+            cookies.forEach((cookie) => {
+              cookieStore.set(cookie.name, cookie.value, cookie.options)
+            })
+          },
+        }
+      }
+    )
+
+    const { data, error } = await supabase.from('term_banner').select('*').single()
+    if (error) throw error
+    return data
+  } catch (error) {
+    console.error('Error fetching term banner:', error)
+    return {
+      text: '',
+      is_active: false
+    }
+  }
+}
+
+async function getEvents() {
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => {
+            return cookieStore.getAll().map((cookie): Cookie => ({
+              name: cookie.name,
+              value: cookie.value,
+            }))
+          },
+          setAll: (cookies: Cookie[]) => {
+            cookies.forEach((cookie) => {
+              cookieStore.set(cookie.name, cookie.value, cookie.options)
+            })
+          },
+        }
+      }
+    )
+
+    const { data, error } = await supabase
+      .from('upcoming_events')
+      .select('*')
+      .order('date', { ascending: true })
+      .limit(6)
+
+    if (error) throw error
+    return data
+  } catch (error) {
+    console.error('Error fetching events:', error)
+    return []
+  }
+}
+
 export default async function Home() {
   const heroContent = await getHeroContent()
+  const termBanner = await getTermBanner()
+  const events = await getEvents()
 
   // Ensure we have a valid image URL
   const imageUrl = heroContent.image_url || defaultHeroContent.image_url
 
   return (
     <main>
+      <TermBanner text={termBanner.text} is_active={termBanner.is_active} />
       {/* Hero Section */}
       <section className="relative bg-white overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
@@ -163,6 +241,9 @@ export default async function Home() {
       {/* Programs Section */}
       <ProgramsSection />
 
+      {/* Upcoming Events Section */}
+      <UpcomingEventsSection />
+
       {/* Why Choose Us Section */}
       <section className="bg-gray-50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -211,6 +292,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Facilities Section */}
+      <FacilitiesSection />
     </main>
   )
 }

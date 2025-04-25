@@ -11,10 +11,15 @@ import {
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
   BeakerIcon,
-  PencilSquareIcon
+  PencilSquareIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'react-hot-toast'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -43,23 +48,27 @@ export default function AdminLayout({
   )
 
   useEffect(() => {
-    if (PUBLIC_PATHS.includes(pathname)) {
-      setIsLoading(false)
-      return
-    }
+    checkUser()
+  }, [])
 
-    const checkAuth = async () => {
+  async function checkUser() {
+    try {
       const { data: { session }, error } = await supabase.auth.getSession()
       
-      if (error || !session) {
+      if (error) throw error
+      
+      if (!session) {
         router.push('/admin/login')
-      } else {
-        setIsLoading(false)
+        return
       }
-    }
 
-    checkAuth()
-  }, [router, supabase, pathname])
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+      toast.error('Authentication error')
+      router.push('/admin/login')
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -75,13 +84,17 @@ export default function AdminLayout({
 
   // If it's a public path, render without the admin layout
   if (PUBLIC_PATHS.includes(pathname)) {
-    return <>{children}</>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {children}
+      </div>
+    )
   }
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-[#2596be]"></div>
       </div>
     )
   }
@@ -90,15 +103,43 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-all duration-200 ease-in-out",
+        isSidebarOpen ? "w-64" : "w-20"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
-            <Link href="/admin" className="text-xl font-bold text-white">
-              Admin Panel
+          <div className="flex items-center justify-between h-16 px-4 bg-[#2596be]">
+            <Link href="/admin" className="flex items-center">
+              {isSidebarOpen ? (
+                <div className="relative w-40 h-8">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-8 h-8">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
             </Link>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="text-white hover:text-gray-200"
+            >
+              {isSidebarOpen ? (
+                <ChevronDoubleLeftIcon className="w-5 h-5" />
+              ) : (
+                <ChevronDoubleRightIcon className="w-5 h-5" />
+              )}
+            </button>
           </div>
 
           {/* Navigation */}
@@ -111,19 +152,21 @@ export default function AdminLayout({
                   href={item.href}
                   className={cn(
                     isActive
-                      ? "bg-blue-50 text-blue-600"
+                      ? "bg-[#2596be]/10 text-[#2596be]"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                   )}
+                  title={!isSidebarOpen ? item.name : undefined}
                 >
                   <item.icon
                     className={cn(
-                      isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-500",
-                      "mr-3 h-5 w-5"
+                      isActive ? "text-[#2596be]" : "text-gray-400 group-hover:text-gray-500",
+                      "h-5 w-5",
+                      isSidebarOpen ? "mr-3" : "mx-auto"
                     )}
                     aria-hidden="true"
                   />
-                  {item.name}
+                  {isSidebarOpen && item.name}
                 </Link>
               )
             })}
@@ -133,10 +176,14 @@ export default function AdminLayout({
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleSignOut}
-              className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-600 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className={cn(
+                "flex items-center text-red-600 bg-white border border-red-600 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
+                isSidebarOpen ? "w-full px-4 py-2 justify-center" : "w-12 h-12 mx-auto justify-center"
+              )}
+              title={!isSidebarOpen ? "Sign out" : undefined}
             >
-              <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-              Sign out
+              <ArrowLeftOnRectangleIcon className="w-5 h-5" />
+              {isSidebarOpen && <span className="ml-2 text-sm font-medium">Sign out</span>}
             </button>
           </div>
         </div>
@@ -144,8 +191,8 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <div className={cn(
-        "transition-margin duration-200 ease-in-out",
-        isSidebarOpen ? "ml-64" : "ml-0"
+        "transition-all duration-200 ease-in-out",
+        isSidebarOpen ? "ml-64" : "ml-20"
       )}>
         <main className="p-8">
           <div className="max-w-7xl mx-auto">
@@ -157,7 +204,7 @@ export default function AdminLayout({
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-blue-600 text-white shadow-lg md:hidden"
+        className="fixed bottom-4 left-4 z-50 p-2 rounded-full bg-[#2596be] text-white shadow-lg md:hidden"
       >
         <svg
           className="w-6 h-6"

@@ -1,173 +1,176 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'react-hot-toast'
 
 interface Feature {
+  id: number
   title: string
   description: string
   icon: string
 }
 
 export default function WhyChooseUsSection() {
-  const [sectionContent, setSectionContent] = useState({
-    title: 'Learn Languages The Smart Way',
-    description: 'Our innovative approach combines proven teaching methods and modern methodologies to help you reach fluency faster'
-  })
+  const [features, setFeatures] = useState<Feature[]>([])
+  const [isEditing, setIsEditing] = useState<number | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
-  const [features, setFeatures] = useState<Feature[]>([
-    {
-      title: 'Expert Native Teachers',
-      description: 'Learn from certified native speakers with years of teaching experience',
-      icon: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
-    },
-    {
-      title: 'Flexible Learning',
-      description: 'Choose from various schedules that fit your lifestyle',
-      icon: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'
-    },
-    {
-      title: 'Modern Facilities',
-      description: 'State-of-the-art classrooms and learning resources',
-      icon: 'M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z'
-    },
-    {
-      title: 'Proven Results',
-      description: 'Track record of student success and achievement',
-      icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 2h1.5v3l2-3h1.7l-2 3 2 3h-1.7l-2-3v3H12V5zM7 5h3v6H8.5V7H7V5zm0 8h4v2H7v-2zm9 4H7v-1h9v1z'
+  useEffect(() => {
+    loadFeatures()
+  }, [])
+
+  const loadFeatures = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('why_choose_us')
+        .select('*')
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+      if (data) setFeatures(data)
+    } catch (error) {
+      console.error('Error loading features:', error)
+      toast.error('Failed to load features')
     }
-  ])
-
-  const handleSectionChange = (field: keyof typeof sectionContent, value: string) => {
-    setSectionContent({ ...sectionContent, [field]: value })
   }
 
-  const handleFeatureChange = (index: number, field: keyof Feature, value: string) => {
-    const newFeatures = [...features]
-    newFeatures[index] = { ...newFeatures[index], [field]: value }
-    setFeatures(newFeatures)
+  const handleSave = async (feature: Feature) => {
+    setIsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('why_choose_us')
+        .upsert({
+          id: feature.id,
+          title: feature.title,
+          description: feature.description,
+          icon: feature.icon
+        })
+
+      if (error) throw error
+
+      toast.success('Feature saved successfully!')
+      loadFeatures()
+      setIsEditing(null)
+    } catch (error) {
+      console.error('Error saving feature:', error)
+      toast.error('Failed to save feature')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: Implement save functionality
-    console.log('Saving why choose us section:', { sectionContent, features })
+  const handleDelete = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('why_choose_us')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      toast.success('Feature deleted successfully!')
+      loadFeatures()
+    } catch (error) {
+      console.error('Error deleting feature:', error)
+      toast.error('Failed to delete feature')
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Why Choose Us Section Content</h2>
-        
-        {/* Section Header */}
-        <div className="space-y-6 mb-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Section Title
-            </label>
-            <input
-              type="text"
-              value={sectionContent.title}
-              onChange={(e) => handleSectionChange('title', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Section Description
-            </label>
-            <textarea
-              value={sectionContent.description}
-              onChange={(e) => handleSectionChange('description', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-        </div>
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Why Choose Us Section</h2>
+        <button
+          onClick={() => setIsEditing(0)}
+          className="px-4 py-2 text-white bg-[#2596be] rounded-md hover:bg-[#1a7290]"
+        >
+          Add Feature
+        </button>
+      </div>
 
-        {/* Features */}
-        <div className="space-y-6">
-          {features.map((feature, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-medium mb-4">Feature {index + 1}</h3>
-              
+      <div className="space-y-6">
+        {features.map((feature) => (
+          <div key={feature.id} className="border-b pb-6">
+            {isEditing === feature.id ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
                   <input
                     type="text"
                     value={feature.title}
-                    onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                    onChange={(e) => setFeatures(features.map(f => 
+                      f.id === feature.id ? { ...f, title: e.target.value } : f
+                    ))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <input
-                    type="text"
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
                     value={feature.description}
-                    onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                    onChange={(e) => setFeatures(features.map(f => 
+                      f.id === feature.id ? { ...f, description: e.target.value } : f
+                    ))}
+                    rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Icon (SVG Path)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
                   <input
                     type="text"
                     value={feature.icon}
-                    onChange={(e) => handleFeatureChange(index, 'icon', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                    onChange={(e) => setFeatures(features.map(f => 
+                      f.id === feature.id ? { ...f, icon: e.target.value } : f
+                    ))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="SVG path or icon class"
                   />
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Save Button */}
-        <div className="mt-8 flex justify-end">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-
-      {/* Preview Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Preview</h2>
-        <div className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-4">{sectionContent.title}</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                {sectionContent.description}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d={feature.icon} />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold mb-4">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setIsEditing(null)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleSave(feature)}
+                    disabled={isSaving}
+                    className={`px-4 py-2 text-white rounded-md ${
+                      isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2596be] hover:bg-[#1a7290]'
+                    }`}
+                  >
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-medium">{feature.title}</h3>
+                  <p className="text-gray-600 mt-1">{feature.description}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setIsEditing(feature.id)}
+                    className="text-[#2596be] hover:text-[#1a7290]"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(feature.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        ))}
       </div>
-    </form>
+    </div>
   )
 } 
