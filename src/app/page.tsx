@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import type { HeroContent } from '@/lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
@@ -9,12 +8,12 @@ import ProgramsSection from '../components/ProgramsSection'
 import TermBanner from '@/components/ui/TermBanner'
 import FacilitiesSection from '@/components/FacilitiesSection'
 import UpcomingEventsSection from '@/components/UpcomingEventsSection'
+import type { Database } from '@/lib/database.types'
 
-interface Cookie {
-  name: string
-  value: string
-  options?: CookieOptions
-}
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 const defaultHeroContent: HeroContent = {
   id: uuidv4(),
@@ -32,28 +31,6 @@ const defaultHeroContent: HeroContent = {
 
 async function getHeroContent() {
   try {
-    console.log('Initializing Supabase client...');
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => {
-            return cookieStore.getAll().map((cookie): Cookie => ({
-              name: cookie.name,
-              value: cookie.value,
-            }))
-          },
-          setAll: (cookies: Cookie[]) => {
-            cookies.forEach((cookie) => {
-              cookieStore.set(cookie.name, cookie.value, cookie.options)
-            })
-          },
-        }
-      }
-    )
-
     console.log('Fetching hero content...');
     const { data, error } = await supabase.from('hero_content').select('*').single()
     
@@ -92,27 +69,6 @@ async function getHeroContent() {
 
 async function getTermBanner() {
   try {
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => {
-            return cookieStore.getAll().map((cookie): Cookie => ({
-              name: cookie.name,
-              value: cookie.value,
-            }))
-          },
-          setAll: (cookies: Cookie[]) => {
-            cookies.forEach((cookie) => {
-              cookieStore.set(cookie.name, cookie.value, cookie.options)
-            })
-          },
-        }
-      }
-    )
-
     const { data, error } = await supabase.from('term_banner').select('*').single()
     if (error) throw error
     return data
@@ -127,27 +83,6 @@ async function getTermBanner() {
 
 async function getEvents() {
   try {
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll: () => {
-            return cookieStore.getAll().map((cookie): Cookie => ({
-              name: cookie.name,
-              value: cookie.value,
-            }))
-          },
-          setAll: (cookies: Cookie[]) => {
-            cookies.forEach((cookie) => {
-              cookieStore.set(cookie.name, cookie.value, cookie.options)
-            })
-          },
-        }
-      }
-    )
-
     const { data, error } = await supabase
       .from('upcoming_events')
       .select('*')
