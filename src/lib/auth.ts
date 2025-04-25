@@ -1,9 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { Database } from './database.types'
 
 // Create a single instance of the Supabase client
-export const supabase = createBrowserClient(
+export const supabase = createBrowserClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
