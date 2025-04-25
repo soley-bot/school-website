@@ -18,11 +18,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} flex min-h-full flex-col`}>
+    <html lang="en" className="h-full scroll-smooth">
+      <body className={`${inter.className} min-h-full flex flex-col bg-white`}>
         <ErrorBoundary>
           <Navigation />
-          <main className="flex-grow">{children}</main>
+          <div className="flex-grow">
+            {children}
+          </div>
           <Footer />
         </ErrorBoundary>
       </body>

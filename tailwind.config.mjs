@@ -8,6 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: '#2596be',
+          secondary: '#1a7290',
+        },
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -32,6 +36,14 @@ export default {
           700: '#c2410c',
           800: '#9a3412',
           900: '#7c2d12',
+        },
+      },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: '1rem',
+          sm: '1.5rem',
+          lg: '2rem',
         },
       },
     },
