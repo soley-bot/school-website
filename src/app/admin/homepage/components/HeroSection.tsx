@@ -20,7 +20,7 @@ export default function HeroSection() {
     primary_button_link: '#programs',
     secondary_button_text: 'Free Trial Class',
     secondary_button_link: '#',
-    image_url: '/images/facilities/students-learning.jpg',
+    image_url: '/images/classroom.jpg',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   })
@@ -32,23 +32,8 @@ export default function HeroSection() {
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
-    checkAuth()
     loadHeroContent()
   }, [])
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      if (authError) throw authError
-      if (!session) {
-        router.push('/admin/login')
-        return
-      }
-    } catch (error) {
-      console.error('Auth error:', error)
-      router.push('/admin/login')
-    }
-  }
 
   const loadHeroContent = async () => {
     try {
@@ -72,7 +57,7 @@ export default function HeroSection() {
               primary_button_link: '#programs',
               secondary_button_text: 'Free Trial Class',
               secondary_button_link: '#',
-              image_url: '/images/facilities/students-learning.jpg',
+              image_url: '/images/classroom.jpg',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -116,14 +101,6 @@ export default function HeroSection() {
     setSaveSuccess(false)
 
     try {
-      // Check authentication
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      if (authError) throw authError
-      if (!session) {
-        router.push('/admin/login')
-        return
-      }
-
       let newImageUrl = heroContent.image_url
 
       // Upload new image if selected
@@ -198,26 +175,17 @@ export default function HeroSection() {
           .single()
       }
 
-      if (result.error) {
-        throw result.error
-      }
+      if (result.error) throw result.error
 
-      // Update local state with new data
-      if (result.data) {
-        setHeroContent(result.data)
-        setPreviewUrl(result.data.image_url)
-        setSaveSuccess(true)
-        toast.success('Changes saved successfully!')
-        // Refresh the page to ensure we have the latest data
-        router.refresh()
-      }
+      setHeroContent(result.data)
+      setSaveSuccess(true)
+      toast.success('Hero section updated successfully')
     } catch (error) {
-      console.error('Save error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to save content')
-      toast.error('Failed to save content')
+      console.error('Error saving hero content:', error)
+      setError(error instanceof Error ? error.message : 'Failed to save content. Please try again.')
+      toast.error('Failed to save changes')
     } finally {
       setIsSaving(false)
-      setSelectedImage(null)
     }
   }
 
@@ -401,11 +369,11 @@ export default function HeroSection() {
                 primary_button_link: '#programs',
                 secondary_button_text: 'Free Trial Class',
                 secondary_button_link: '#',
-                image_url: '/images/facilities/students-learning.jpg',
+                image_url: '/images/classroom.jpg',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
-              setPreviewUrl('/images/facilities/students-learning.jpg')
+              setPreviewUrl('/images/classroom.jpg')
               setSaveSuccess(false)
             }}
             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"

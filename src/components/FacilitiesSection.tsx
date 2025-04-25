@@ -68,10 +68,11 @@ export default function FacilitiesSection() {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
                 <Image
-                  src="/images/facilities/language-lab.jpg"
-                  alt="State-of-the-art Language Labs"
-                  fill
-                  className="object-cover"
+                  className="w-full h-64 object-cover rounded-lg"
+                  src="/images/classroom.jpg"
+                  alt="Language Lab"
+                  width={400}
+                  height={400}
                 />
               </div>
               <div className="p-6">
@@ -83,10 +84,11 @@ export default function FacilitiesSection() {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
                 <Image
-                  src="/images/facilities/cultural-space.jpg"
-                  alt="Cultural Immersion Spaces"
-                  fill
-                  className="object-cover"
+                  className="w-full h-64 object-cover rounded-lg"
+                  src="/images/chinese-class.jpg"
+                  alt="Cultural Space"
+                  width={400}
+                  height={400}
                 />
               </div>
               <div className="p-6">
@@ -98,10 +100,11 @@ export default function FacilitiesSection() {
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
                 <Image
-                  src="/images/facilities/resource-center.jpg"
-                  alt="Multimedia Resource Center"
-                  fill
-                  className="object-cover"
+                  className="w-full h-64 object-cover rounded-lg"
+                  src="/images/chinese-kids.jpg"
+                  alt="Resource Center"
+                  width={400}
+                  height={400}
                 />
               </div>
               <div className="p-6">

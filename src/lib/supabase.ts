@@ -1,20 +1,22 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { type Database } from './database.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
+// Create a single supabase client for the entire app
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+
+// Create a single client component client
+let clientInstance: ReturnType<typeof createClientComponentClient> | null = null
+
+export function getClientComponentClient() {
+  if (!clientInstance) {
+    clientInstance = createClientComponentClient()
   }
-})
+  return clientInstance
+}
 
 export type HeroContent = {
   id: string
@@ -37,51 +39,6 @@ export type StatsContent = {
   icon: string
   created_at: string
   updated_at: string
-}
-
-export type Database = {
-  public: {
-    Tables: {
-      programs: {
-        Row: {
-          id: string
-          name: string
-          description: string
-          tag: string
-          price: number
-          features: string[]
-          button_text: string
-          button_link: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description: string
-          tag: string
-          price: number
-          features: string[]
-          button_text: string
-          button_link: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string
-          tag?: string
-          price?: number
-          features?: string[]
-          button_text?: string
-          button_link?: string
-          created_at?: string
-          updated_at?: string
-        }
-      }
-    }
-  }
 }
 
 export type ProgramContent = Database['public']['Tables']['programs']['Row']

@@ -12,14 +12,27 @@ interface ProgramLevel {
 
 interface ProgramDetailsProps {
   levels: ProgramLevel[];
+  theme?: 'red' | 'blue';
 }
 
-export default function ProgramDetails({ levels }: ProgramDetailsProps) {
+export default function ProgramDetails({ levels, theme = 'blue' }: ProgramDetailsProps) {
+  const themeColors = theme === 'red' 
+    ? {
+        primary: 'text-red-600',
+        badge: 'bg-red-600',
+        accent: 'text-red-600'
+      }
+    : {
+        primary: 'text-indigo-800',
+        badge: 'bg-indigo-800',
+        accent: 'text-indigo-800'
+      };
+
   return (
     <section className="py-16" id="program-details">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
-          <h3 className="text-indigo-800 font-semibold mb-2">Program Details</h3>
+          <h3 className={`${themeColors.primary} font-semibold mb-2`}>Program Details</h3>
           <h2 className="text-3xl font-bold">Course Structure and Information</h2>
         </div>
 
@@ -29,7 +42,7 @@ export default function ProgramDetails({ levels }: ProgramDetailsProps) {
               <div className="flex items-center justify-between border-b pb-4 mb-6">
                 <div className="flex items-center">
                   <h3 className="text-2xl font-bold">{level.title}</h3>
-                  <span className="ml-4 px-3 py-1 bg-indigo-800 text-white text-sm font-semibold rounded-full">
+                  <span className={`ml-4 px-3 py-1 ${themeColors.badge} text-white text-sm font-semibold rounded-full`}>
                     {level.badge}
                   </span>
                 </div>
@@ -53,12 +66,12 @@ export default function ProgramDetails({ levels }: ProgramDetailsProps) {
               <p className="text-gray-600 mb-6">{level.description}</p>
 
               <div>
-                <h4 className="text-lg font-semibold text-indigo-800 mb-4">Learning Outcomes</h4>
+                <h4 className={`text-lg font-semibold ${themeColors.accent} mb-4`}>Learning Outcomes</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {level.outcomes.map((outcome, i) => (
                     <li key={i} className="flex items-start">
                       <svg
-                        className="h-5 w-5 text-indigo-800 mr-2 mt-0.5 flex-shrink-0"
+                        className={`h-5 w-5 ${themeColors.accent} mr-2 mt-0.5 flex-shrink-0`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

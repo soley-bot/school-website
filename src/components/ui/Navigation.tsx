@@ -13,8 +13,8 @@ const academics = [
     href: '/academics/general-english',
   },
   {
-    name: 'IELTS Preparation',
-    description: 'Specialized training for IELTS exam',
+    name: 'Young Learners Program',
+    description: 'Fun and engaging English learning for young students',
     href: '/academics/ielts-preparation',
   },
   {

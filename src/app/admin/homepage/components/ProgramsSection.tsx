@@ -172,7 +172,6 @@ export default function ProgramsSection() {
 
       toast.success('Programs saved successfully!')
       setSaveSuccess(true)
-      router.refresh()
       await loadPrograms() // Reload to get new IDs
     } catch (error) {
       console.error('Save error:', error)

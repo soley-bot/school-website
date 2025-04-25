@@ -1,11 +1,21 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Paths that don't need authentication
+const PUBLIC_PATHS = ['/admin/login', '/admin/env-test']
+
 export async function middleware(request: NextRequest) {
-  console.log('Middleware executing for path:', request.nextUrl.pathname)
+  const pathname = request.nextUrl.pathname
+  console.log('Middleware executing for path:', pathname)
   
+  // Skip middleware for non-admin routes and static files
+  if (!pathname.startsWith('/admin') || 
+      pathname.match(/\.(ico|png|jpg|jpeg|gif|svg)$/)) {
+    return NextResponse.next()
+  }
+
   // Create a response object that we can modify
-  const response = NextResponse.next()
+  let response = NextResponse.next()
 
   // Create the Supabase client
   const supabase = createServerClient(
@@ -17,13 +27,14 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          if (request.url.startsWith('https://')) {
-            options.secure = true
-          }
           response.cookies.set({
             name,
             value,
             ...options,
+            path: '/',
+            secure: request.url.startsWith('https://'),
+            sameSite: 'lax',
+            httpOnly: true
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -31,47 +42,82 @@ export async function middleware(request: NextRequest) {
             name,
             value: '',
             ...options,
+            path: '/',
+            expires: new Date(0),
+            maxAge: 0
           })
         },
-      },
+      }
     }
   )
 
   try {
     // Check auth status
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('Auth check - Session exists:', !!session)
+    const { data: { session }, error } = await supabase.auth.getSession()
+    console.log('Auth check - Session exists:', !!session, 'Path:', pathname)
 
-    // Handle authentication for admin routes
-    if (request.nextUrl.pathname.startsWith('/admin')) {
-      console.log('Processing admin route:', request.nextUrl.pathname)
+    if (error) {
+      console.error('Session error:', error)
+      throw error
+    }
+
+    const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
+
+    // If authenticated and trying to access login page, redirect to admin homepage
+    if (session && pathname === '/admin/login') {
+      console.log('Redirecting authenticated user from login to admin homepage')
+      // Get the intended redirect path or default to homepage
+      const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+      const targetPath = redirectTo ? decodeURIComponent(redirectTo) : '/admin/homepage'
       
-      // If authenticated and trying to access login page, redirect to admin dashboard
-      if (request.nextUrl.pathname === '/admin/login' && session) {
-        console.log('Redirecting authenticated user from login to admin dashboard')
+      // Prevent redirect loops
+      if (targetPath === '/admin/login') {
         return NextResponse.redirect(new URL('/admin/homepage', request.url))
       }
-
-      // If not authenticated and trying to access any admin page except login, redirect to login
-      if (!session && request.nextUrl.pathname !== '/admin/login') {
-        console.log('Unauthorized access attempt - redirecting to login')
-        const redirectUrl = new URL('/admin/login', request.url)
-        redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
-        return NextResponse.redirect(redirectUrl)
-      }
-
-      // If authenticated and accessing any admin route (except login which was handled above), allow access
-      if (session) {
-        console.log('Authenticated user accessing admin route - allowing access')
-        return response
-      }
+      
+      return NextResponse.redirect(new URL(targetPath, request.url))
     }
+    
+    // If not authenticated and trying to access protected route
+    if (!session && !isPublicPath) {
+      console.log('Unauthorized access attempt - redirecting to login')
+      const redirectUrl = new URL('/admin/login', request.url)
+      // Store the original URL to redirect back after login
+      redirectUrl.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Preserve all existing cookies
+    const existingCookies = request.cookies.getAll()
+    existingCookies.forEach(cookie => {
+      const { name, value, ...cookieOptions } = cookie
+      response.cookies.set({
+        name,
+        value,
+        ...cookieOptions,
+        path: '/',
+      })
+    })
 
     return response
   } catch (error) {
     console.error('Middleware auth error:', error)
-    if (request.nextUrl.pathname.startsWith('/admin') && 
-        request.nextUrl.pathname !== '/admin/login') {
+    // Clear any existing session cookies on error
+    const sessionCookies = request.cookies.getAll()
+      .filter(cookie => cookie.name.includes('supabase.auth'))
+    
+    sessionCookies.forEach(cookie => {
+      const { name } = cookie
+      response.cookies.set({
+        name,
+        value: '',
+        path: '/',
+        expires: new Date(0),
+        maxAge: 0
+      })
+    })
+
+    if (!pathname.startsWith('/admin/login')) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
     return response

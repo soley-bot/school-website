@@ -1,19 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { supabase, useAuth } from '@/lib/auth'
 import { toast } from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isLoading } = useAuth()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setIsLoading(true)
+    if (isSubmitting) return
+    
+    setIsSubmitting(true)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -25,14 +26,21 @@ export default function LoginPage() {
 
       if (data.session) {
         toast.success('Logged in successfully')
-        router.push('/admin')
+        // The redirect will be handled by the auth hook
       }
     } catch (error: any) {
       console.error('Error logging in:', error)
       toast.error(error.message || 'Failed to log in')
-    } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2596be]"></div>
+      </div>
+    )
   }
 
   return (
@@ -59,6 +67,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-[#2596be] focus:border-[#2596be] focus:z-10 sm:text-sm"
                 placeholder="Email address"
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -75,6 +84,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-[#2596be] focus:border-[#2596be] focus:z-10 sm:text-sm"
                 placeholder="Password"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -82,10 +92,17 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#2596be] hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2596be]"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#2596be] hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2596be] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
             </button>
           </div>
         </form>

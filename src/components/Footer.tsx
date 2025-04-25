@@ -3,6 +3,27 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+const campuses = [
+  {
+    name: 'Main Campus',
+    address: '123 Education Street, District 1, Ho Chi Minh City',
+    phone: '(028) 1234-5678',
+    email: 'info@stanford.edu.vn'
+  },
+  {
+    name: 'District 2 Campus',
+    address: '456 Learning Road, District 2, Ho Chi Minh City',
+    phone: '(028) 2345-6789',
+    email: 'd2@stanford.edu.vn'
+  },
+  {
+    name: 'District 7 Campus',
+    address: '789 Knowledge Avenue, District 7, Ho Chi Minh City',
+    phone: '(028) 3456-7890',
+    email: 'd7@stanford.edu.vn'
+  }
+]
+
 export function Footer() {
   return (
     <footer className="bg-gray-900 text-white">
@@ -56,29 +77,21 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
-            <ul className="space-y-3 text-gray-400">
-              <li>123 School Street, City, State 12345</li>
-              <li>info@school.edu</li>
-              <li>(123) 456-7890</li>
-            </ul>
-          </div>
-
-          {/* Map */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Location</h3>
-            <a 
-              href="https://maps.google.com" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="block rounded-lg overflow-hidden h-48 relative bg-gray-800 hover:bg-gray-700 transition-colors"
-            >
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                Click to view on Google Maps
-              </div>
-            </a>
+          {/* Our Campuses */}
+          <div className="lg:col-span-2">
+            <h3 className="text-lg font-semibold mb-4">Our Campuses</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {campuses.map((campus, index) => (
+                <div key={index} className="text-gray-400">
+                  <h4 className="font-medium text-white mb-2">{campus.name}</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li>{campus.address}</li>
+                    <li>Tel: {campus.phone}</li>
+                    <li>Email: {campus.email}</li>
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
