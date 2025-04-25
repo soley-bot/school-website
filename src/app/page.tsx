@@ -26,45 +26,63 @@ const defaultHeroContent: HeroContent = {
 }
 
 async function getHeroContent() {
-  const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => {
-          return cookieStore.getAll().map((cookie): Cookie => ({
-            name: cookie.name,
-            value: cookie.value,
-          }))
-        },
-        setAll: (cookies: Cookie[]) => {
-          cookies.forEach((cookie) => {
-            cookieStore.set(cookie.name, cookie.value, cookie.options)
-          })
-        },
+  try {
+    console.log('Initializing Supabase client...');
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => {
+            return cookieStore.getAll().map((cookie): Cookie => ({
+              name: cookie.name,
+              value: cookie.value,
+            }))
+          },
+          setAll: (cookies: Cookie[]) => {
+            cookies.forEach((cookie) => {
+              cookieStore.set(cookie.name, cookie.value, cookie.options)
+            })
+          },
+        }
       }
-    }
-  )
-  const { data, error } = await supabase.from('hero_content').select('*').single()
-  
-  if (error || !data) {
-    // If no content exists, create default content
-    const { data: newData, error: insertError } = await supabase
-      .from('hero_content')
-      .upsert(defaultHeroContent)
-      .select()
-      .single()
+    )
 
-    if (insertError) {
-      console.error('Error creating default hero content:', insertError)
+    console.log('Fetching hero content...');
+    const { data, error } = await supabase.from('hero_content').select('*').single()
+    
+    if (error) {
+      console.error('Error fetching hero content:', error);
+      
+      if (error.code === 'PGRST116') {
+        console.log('No content exists, creating default content...');
+        const { data: newData, error: insertError } = await supabase
+          .from('hero_content')
+          .upsert(defaultHeroContent)
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error('Error creating default hero content:', insertError)
+          console.log('Returning default content due to insert error');
+          return defaultHeroContent
+        }
+
+        console.log('Successfully created default content');
+        return newData as HeroContent
+      }
+
+      console.log('Returning default content due to fetch error');
       return defaultHeroContent
     }
 
-    return newData as HeroContent
+    console.log('Successfully fetched hero content');
+    return data as HeroContent
+  } catch (error) {
+    console.error('Unexpected error in getHeroContent:', error);
+    return defaultHeroContent
   }
-
-  return data as HeroContent
 }
 
 export default async function Home() {
