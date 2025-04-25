@@ -9,6 +9,85 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      hero_content: {
+        Row: {
+          id: string
+          tag: string
+          title: string
+          description: string
+          primary_button_text: string
+          primary_button_link: string
+          secondary_button_text: string
+          secondary_button_link: string
+          image_url: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tag: string
+          title: string
+          description: string
+          primary_button_text: string
+          primary_button_link: string
+          secondary_button_text: string
+          secondary_button_link: string
+          image_url: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tag?: string
+          title?: string
+          description?: string
+          primary_button_text?: string
+          primary_button_link?: string
+          secondary_button_text?: string
+          secondary_button_link?: string
+          image_url?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      programs: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          tag: string
+          price: number
+          features: string[]
+          button_text: string
+          button_link: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description: string
+          tag: string
+          price: number
+          features: string[]
+          button_text: string
+          button_link: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          tag?: string
+          price?: number
+          features?: string[]
+          button_text?: string
+          button_link?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
       news: {
         Row: {
           id: number

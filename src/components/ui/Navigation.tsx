@@ -49,6 +49,7 @@ export function Navigation() {
                 src="/images/logo.png"
                 alt="Language School Logo"
                 fill
+                sizes="(max-width: 768px) 192px, 192px"
                 className="object-contain"
                 priority
                 quality={100}

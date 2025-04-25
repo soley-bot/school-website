@@ -6,11 +6,13 @@ import { supabase } from '@/lib/supabase'
 import type { HeroContent } from '@/lib/supabase'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function HeroSection() {
   const router = useRouter()
+  const defaultId = uuidv4()
   const [heroContent, setHeroContent] = useState<HeroContent>({
-    id: '1',
+    id: defaultId,
     tag: 'Classes Enrolling Now',
     title: 'Master Languages with Confidence',
     description: 'Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.',
@@ -58,10 +60,11 @@ export default function HeroSection() {
       if (error) {
         if (error.code === 'PGRST116') {
           // No content exists yet, create default content
+          const newId = uuidv4()
           const { data: newData, error: insertError } = await supabase
             .from('hero_content')
             .upsert({
-              id: '1',
+              id: newId,
               tag: 'Classes Enrolling Now',
               title: 'Master Languages with Confidence',
               description: 'Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.',
@@ -186,10 +189,11 @@ export default function HeroSection() {
           .select()
           .single()
       } else {
-        // Insert new record with id '1'
+        // Insert new record with a UUID
+        const newId = uuidv4()
         result = await supabase
           .from('hero_content')
-          .insert([{ id: '1', ...heroData }])
+          .insert([{ id: newId, ...heroData }])
           .select()
           .single()
       }
@@ -209,9 +213,8 @@ export default function HeroSection() {
       }
     } catch (error) {
       console.error('Save error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to save changes. Please try again.')
-      toast.error('Failed to save changes')
-      setSaveSuccess(false)
+      setError(error instanceof Error ? error.message : 'Failed to save content')
+      toast.error('Failed to save content')
     } finally {
       setIsSaving(false)
       setSelectedImage(null)
@@ -341,7 +344,9 @@ export default function HeroSection() {
                       src={previewUrl}
                       alt="Hero image preview"
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover rounded-md"
+                      priority
                     />
                   </div>
                 ) : (
@@ -388,7 +393,7 @@ export default function HeroSection() {
             type="button"
             onClick={() => {
               setHeroContent({
-                id: '1',
+                id: defaultId,
                 tag: 'Classes Enrolling Now',
                 title: 'Master Languages with Confidence',
                 description: 'Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.',

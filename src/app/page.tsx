@@ -20,7 +20,7 @@ const defaultHeroContent: HeroContent = {
   primary_button_link: '#programs',
   secondary_button_text: 'Free Trial Class',
   secondary_button_link: '#',
-  image_url: '/hero-image.jpg',
+  image_url: '/images/facilities/students-learning.jpg',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 }
@@ -70,6 +70,9 @@ async function getHeroContent() {
 export default async function Home() {
   const heroContent = await getHeroContent()
 
+  // Ensure we have a valid image URL
+  const imageUrl = heroContent.image_url || defaultHeroContent.image_url
+
   return (
     <main>
       {/* Hero Section */}
@@ -103,9 +106,10 @@ export default async function Home() {
             </div>
             <div className="flex-1 relative w-full max-w-xl aspect-[3/2]">
               <Image
-                src={heroContent.image_url}
+                src={imageUrl}
                 alt="Hero image"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover rounded-lg"
                 priority
               />
