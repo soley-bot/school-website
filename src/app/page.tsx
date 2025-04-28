@@ -137,15 +137,17 @@ export default async function Home() {
                 </a>
               </div>
             </div>
-            <div className="flex-1 relative w-full max-w-xl aspect-[3/2]">
-              <Image
-                src={imageUrl}
-                alt="Hero image"
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover rounded-lg"
-                priority
-              />
+            <div className="flex-1 relative">
+              <div className="relative w-full aspect-[3/2]">
+                <Image
+                  src={imageUrl}
+                  alt="Hero image"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover rounded-lg"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>

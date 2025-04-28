@@ -5,7 +5,11 @@ import Header from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: "STANFORD AMERICAN SCHOOL",
@@ -18,13 +22,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
-      <body className={`${inter.className} min-h-full flex flex-col bg-white`}>
+    <html lang="en" className={`${inter.variable} h-full scroll-smooth antialiased`}>
+      <body className={`min-h-full flex flex-col bg-white font-sans text-gray-900`}>
         <ErrorBoundary>
           <Header />
-          <div className="flex-grow">
+          <main className="flex-grow">
             {children}
-          </div>
+          </main>
           <Footer />
         </ErrorBoundary>
       </body>

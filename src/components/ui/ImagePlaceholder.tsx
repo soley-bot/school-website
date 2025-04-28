@@ -33,13 +33,15 @@ export function ImagePlaceholder({
 
   return (
     <div className={`relative ${aspectRatioClasses[aspectRatio]} ${className} overflow-hidden rounded-xl bg-white`}>
-      <Image
-        src={imageSrc}
-        alt={title}
-        fill
-        className="object-cover"
-        priority={false}
-      />
+      <div className="absolute inset-0">
+        <Image
+          src={imageSrc}
+          alt={title}
+          fill
+          className="object-cover"
+          priority={false}
+        />
+      </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/10 p-4 text-center">
         <div className="text-lg font-semibold text-gray-900">{title}</div>
         {subtitle && (

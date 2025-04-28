@@ -16,10 +16,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config) => {
-    config.cache = false; // Disable webpack caching
-    return config;
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
   },
 }
 
-export default nextConfig; 
+module.exports = nextConfig 

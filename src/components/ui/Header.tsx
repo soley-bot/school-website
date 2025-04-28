@@ -17,6 +17,8 @@ interface HeaderProgram {
   name: string;
   slug: string;
   type: 'english' | 'chinese' | 'ielts';
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface GroupedPrograms {
@@ -41,66 +43,78 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [groupedPrograms, setGroupedPrograms] = useState<GroupedPrograms>({})
   const [isLoading, setIsLoading] = useState(true)
-  const pathname = usePathname()
+  const pathname = usePathname() ?? '/';
   const isAdminPage = pathname.startsWith('/admin')
 
   useEffect(() => {
     const fetchPrograms = async () => {
+      setIsLoading(true);
       try {
-        console.log('Fetching programs...')
+        console.log('Fetching programs...');
         const { data: programData, error: programError } = await supabase
           .from('program_pages')
           .select('id, name, slug, type')
           .order('name')
+          .not('type', 'is', null); // Ensure we only get programs with valid types
 
         if (programError) {
-          console.error('Error fetching programs:', programError)
-          throw programError
+          console.error('Error fetching programs:', programError);
+          throw programError;
         }
 
-        if (!programData) {
-          console.log('No programs found')
-          setGroupedPrograms({})
-          return
+        if (!programData || programData.length === 0) {
+          console.log('No programs found');
+          setGroupedPrograms({});
+          return;
         }
 
-        console.log('Programs fetched:', programData)
+        console.log('Raw programs data:', programData);
+
+        // Type guard to ensure program type is valid
+        const validPrograms = programData.filter((program): program is HeaderProgram => {
+          const isValidType = ['english', 'chinese', 'ielts'].includes(program.type);
+          if (!isValidType) {
+            console.warn(`Invalid program type found: ${program.type} for program: ${program.name}`);
+          }
+          return isValidType;
+        });
+
+        console.log('Valid programs:', validPrograms);
 
         // Group programs by type
-        const grouped = (programData as HeaderProgram[]).reduce<GroupedPrograms>((acc, program) => {
-          // Get the display name for the type
-          const displayType = PROGRAM_TYPES[program.type] || 'Other Programs'
-
+        const grouped = validPrograms.reduce<GroupedPrograms>((acc, program) => {
+          const displayType = PROGRAM_TYPES[program.type];
           if (!acc[displayType]) {
-            acc[displayType] = []
+            acc[displayType] = [];
           }
-          acc[displayType].push(program)
-          return acc
-        }, {})
+          acc[displayType].push(program);
+          return acc;
+        }, {});
 
-        console.log('Grouped programs:', grouped)
-        setGroupedPrograms(grouped)
+        console.log('Final grouped programs:', grouped);
+        setGroupedPrograms(grouped);
       } catch (error) {
-        console.error('Error in fetchPrograms:', error)
-        setGroupedPrograms({})
+        console.error('Error in fetchPrograms:', error);
+        setGroupedPrograms({});
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchPrograms()
-  }, [])
+    fetchPrograms();
+  }, []);
 
   const isActive = (href: string) => {
     if (href === '/') {
-      return pathname === '/'
+      return pathname === '/';
     }
-    return pathname.startsWith(href)
-  }
+    return pathname.startsWith(href);
+  };
 
   const isAcademicsActive = () => {
-    return pathname.startsWith('/academics')
-  }
+    return pathname.startsWith('/academics') || 
+           (pathname.startsWith('/admin/academics') && !pathname.includes('/login'));
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -138,16 +152,20 @@ export default function Header() {
             ))}
 
             {/* Academics Dropdown */}
-            <div className="relative inline-block text-left">
+            <div className="relative inline-block text-left z-50">
               <Menu>
-                <Menu.Button className={`${
-                  isAcademicsActive()
-                    ? 'text-gray-900 font-medium'
-                    : 'text-gray-500 hover:text-gray-900'
-                } group px-1 py-2 text-sm transition-colors duration-200 inline-flex items-center focus:outline-none`}>
+                <Menu.Button 
+                  className={`${
+                    isAcademicsActive()
+                      ? 'text-gray-900 font-medium'
+                      : 'text-gray-500 hover:text-gray-900'
+                  } group px-1 py-2 text-sm transition-colors duration-200 inline-flex items-center focus:outline-none`}
+                >
                   Academics
                   <ChevronDownIcon
-                    className="ml-1 h-4 w-4 text-gray-400 group-hover:text-gray-600"
+                    className={`ml-1 h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform duration-200 ${
+                      isAcademicsActive() ? 'transform rotate-180' : ''
+                    }`}
                     aria-hidden="true"
                   />
                 </Menu.Button>
@@ -164,7 +182,7 @@ export default function Header() {
                   <Menu.Items className="absolute left-0 z-50 mt-2 w-72 origin-top-left bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
                       {isLoading ? (
-                        <div className="px-4 py-2 text-sm text-gray-500">
+                        <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">
                           Loading programs...
                         </div>
                       ) : Object.keys(groupedPrograms).length === 0 ? (
@@ -174,8 +192,8 @@ export default function Header() {
                       ) : (
                         <>
                           {Object.entries(groupedPrograms).map(([type, programs]) => (
-                            <div key={type}>
-                              <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+                            <div key={type} className="group">
+                              <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50 group-first:rounded-t-md">
                                 {type}
                               </div>
                               {programs.map((program) => (
@@ -194,22 +212,6 @@ export default function Header() {
                               ))}
                             </div>
                           ))}
-                          {isAdminPage && (
-                            <div className="border-t">
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <Link
-                                    href="/admin/academics/programs/new"
-                                    className={`${
-                                      active ? 'bg-gray-100' : ''
-                                    } block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50`}
-                                  >
-                                    + Create New Program
-                                  </Link>
-                                )}
-                              </Menu.Item>
-                            </div>
-                          )}
                         </>
                       )}
                     </div>

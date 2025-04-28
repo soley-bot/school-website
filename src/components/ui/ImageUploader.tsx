@@ -78,14 +78,16 @@ export default function ImageUploader({
       <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
         <div className="space-y-1 text-center">
           {previewUrl ? (
-            <div className="relative w-full aspect-[3/2] mb-4">
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                fill
-                className="object-cover rounded-md"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
+            <div className="relative aspect-[3/2] w-full mb-4">
+              <div className="absolute inset-0">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  fill
+                  className="object-cover rounded-md"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
             </div>
           ) : (
             <svg
