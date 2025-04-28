@@ -69,29 +69,29 @@ export default function FeaturesEditor({ features, programId, onUpdate }: Featur
           <div key={feature.id} className="border border-gray-200 rounded-lg p-4 space-y-4">
             <div className="flex justify-between items-start">
               <div className="flex-1 space-y-4">
-                <div>
+              <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Feature Title
                   </label>
-                  <input
-                    type="text"
-                    value={feature.title}
+                <input
+                  type="text"
+                  value={feature.title}
                     onChange={(e) => handleInputChange(index, 'title', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+                />
+              </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Description
                   </label>
-                  <textarea
-                    value={feature.description}
+              <textarea
+                value={feature.description}
                     onChange={(e) => handleInputChange(index, 'description', e.target.value)}
                     rows={3}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+              />
+            </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -112,13 +112,13 @@ export default function FeaturesEditor({ features, programId, onUpdate }: Featur
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => removeFeature(index)}
+            <button
+              type="button"
+              onClick={() => removeFeature(index)}
                 className="ml-4 text-red-600 hover:text-red-800"
-              >
+            >
                 <TrashIcon className="h-5 w-5" />
-              </button>
+            </button>
             </div>
           </div>
         ))}

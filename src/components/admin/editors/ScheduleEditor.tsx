@@ -1,52 +1,66 @@
 'use client'
 
-import React, { useState } from 'react';
-import type { ProgramSchedule } from '@/types/database';
+import React, { useState, useEffect } from 'react';
+import type { ProgramPageSchedule } from '@/types/database';
 
 interface ScheduleEditorProps {
-  schedule: ProgramSchedule;
+  schedule: ProgramPageSchedule | null;
   programId: string;
-  onUpdate: (schedule: ProgramSchedule) => Promise<void>;
+  onUpdate: (schedule: ProgramPageSchedule) => void;
 }
 
+// Default schedule structure
+const defaultSchedule: Omit<ProgramPageSchedule, 'id' | 'program_id' | 'created_at' | 'updated_at'> = {
+  times: {
+    morning: ['9:00 AM - 12:00 PM'],
+    afternoon: ['1:00 PM - 4:00 PM'],
+    evening: ['6:00 PM - 9:00 PM']
+  },
+  duration: {
+    weekday: {
+      label: 'Weekday',
+      duration: '3:00'
+    },
+    weekend: {
+      label: 'Weekend',
+      duration: '3:00'
+    }
+  }
+};
+
 export default function ScheduleEditor({ schedule, programId, onUpdate }: ScheduleEditorProps) {
-  const [formData, setFormData] = useState<ProgramSchedule>(
-    schedule || {
-      id: `new-${Date.now()}`,
+  const [currentSchedule, setCurrentSchedule] = useState<ProgramPageSchedule>(() => {
+    if (schedule) {
+      return schedule;
+    }
+    // Initialize with default values if no schedule exists
+    return {
+      id: '',
       program_id: programId,
-      times: {
-        morning: '',
-        afternoon: '',
-        evening: ''
-      },
-      duration: {
-        weekday: {
-          hours: 0,
-          minutes: 0
-        },
-        weekend: {
-          hours: 0,
-          minutes: 0
-        }
-      },
+      ...defaultSchedule,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }
-  );
+    };
+  });
 
-  const handleTimeChange = (period: keyof ProgramSchedule['times'], value: string) => {
-    setFormData(prev => ({
+  useEffect(() => {
+    if (schedule) {
+      setCurrentSchedule(schedule);
+    }
+  }, [schedule]);
+
+  const handleTimeChange = (period: 'morning' | 'afternoon' | 'evening', value: string) => {
+    setCurrentSchedule(prev => ({
       ...prev,
       times: {
         ...prev.times,
-        [period]: value
-      },
-      updated_at: new Date().toISOString()
+        [period]: value.split('|').map(time => time.trim())
+      }
     }));
   };
 
-  const handleDurationChange = (type: 'weekday' | 'weekend', field: 'hours' | 'minutes', value: number) => {
-    setFormData(prev => ({
+  const handleDurationChange = (type: 'weekday' | 'weekend', field: 'label' | 'duration', value: string) => {
+    setCurrentSchedule(prev => ({
       ...prev,
       duration: {
         ...prev.duration,
@@ -54,123 +68,102 @@ export default function ScheduleEditor({ schedule, programId, onUpdate }: Schedu
           ...prev.duration[type],
           [field]: value
         }
-      },
-      updated_at: new Date().toISOString()
+      }
     }));
   };
 
   const handleSave = () => {
-    onUpdate(formData);
+    onUpdate(currentSchedule);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Class Times</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Class Schedule</h3>
+        
+        {/* Times Section */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Morning Session
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Morning Classes</label>
             <input
               type="text"
-              value={formData.times.morning}
+              value={currentSchedule.times.morning.join(' | ')}
               onChange={(e) => handleTimeChange('morning', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="e.g., 9:00 AM - 12:00 PM"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+              placeholder="e.g. 9:00 AM - 12:00 PM"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Afternoon Session
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Afternoon Classes</label>
             <input
               type="text"
-              value={formData.times.afternoon}
+              value={currentSchedule.times.afternoon.join(' | ')}
               onChange={(e) => handleTimeChange('afternoon', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="e.g., 1:00 PM - 4:00 PM"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+              placeholder="e.g. 1:00 PM - 4:00 PM"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Evening Session
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Evening Classes</label>
             <input
               type="text"
-              value={formData.times.evening}
+              value={currentSchedule.times.evening.join(' | ')}
               onChange={(e) => handleTimeChange('evening', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="e.g., 6:00 PM - 9:00 PM"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+              placeholder="e.g. 6:00 PM - 9:00 PM"
             />
           </div>
         </div>
-      </div>
 
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Duration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">Weekday Classes</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Hours
-                </label>
-                <input
-                  type="number"
-                  value={formData.duration.weekday.hours}
-                  onChange={(e) => handleDurationChange('weekday', 'hours', parseInt(e.target.value, 10))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Minutes
-                </label>
-                <input
-                  type="number"
-                  value={formData.duration.weekday.minutes}
-                  onChange={(e) => handleDurationChange('weekday', 'minutes', parseInt(e.target.value, 10))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  min="0"
-                  max="59"
-                />
-              </div>
+        {/* Duration Section */}
+        <div className="mt-6 space-y-4">
+          <h4 className="text-sm font-medium text-gray-900">Class Duration</h4>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Weekday Label</label>
+              <input
+                type="text"
+                value={currentSchedule.duration.weekday.label}
+                onChange={(e) => handleDurationChange('weekday', 'label', e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+                placeholder="e.g. Weekday"
+              />
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">Weekend Classes</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Hours
-                </label>
-                <input
-                  type="number"
-                  value={formData.duration.weekend.hours}
-                  onChange={(e) => handleDurationChange('weekend', 'hours', parseInt(e.target.value, 10))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Minutes
-                </label>
-                <input
-                  type="number"
-                  value={formData.duration.weekend.minutes}
-                  onChange={(e) => handleDurationChange('weekend', 'minutes', parseInt(e.target.value, 10))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  min="0"
-                  max="59"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Weekday Duration (HH:mm)</label>
+              <input
+                type="text"
+                value={currentSchedule.duration.weekday.duration}
+                onChange={(e) => handleDurationChange('weekday', 'duration', e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+                placeholder="e.g. 3:00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Weekend Label</label>
+              <input
+                type="text"
+                value={currentSchedule.duration.weekend.label}
+                onChange={(e) => handleDurationChange('weekend', 'label', e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+                placeholder="e.g. Weekend"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Weekend Duration (HH:mm)</label>
+              <input
+                type="text"
+                value={currentSchedule.duration.weekend.duration}
+                onChange={(e) => handleDurationChange('weekend', 'duration', e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+                placeholder="e.g. 3:00"
+              />
             </div>
           </div>
         </div>
@@ -180,9 +173,9 @@ export default function ScheduleEditor({ schedule, programId, onUpdate }: Schedu
         <button
           type="button"
           onClick={handleSave}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="inline-flex justify-center rounded-md border border-transparent bg-[#2596be] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-[#2596be] focus:ring-offset-2"
         >
-          Save Changes
+          Save Schedule
         </button>
       </div>
     </div>

@@ -82,104 +82,104 @@ export default function LevelsEditor({ levels, programId, onUpdate }: LevelsEdit
           <div key={level.id} className="border border-gray-200 rounded-lg p-4 space-y-4">
             <div className="flex justify-between items-start">
               <div className="flex-1 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Level Title
                     </label>
-                    <input
-                      type="text"
-                      value={level.title}
+                <input
+                  type="text"
+                  value={level.title}
                       onChange={(e) => handleInputChange(index, 'title', e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
+                />
+              </div>
 
-                  <div>
+              <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Badge
                     </label>
-                    <input
-                      type="text"
-                      value={level.badge}
+                <input
+                  type="text"
+                  value={level.badge}
                       onChange={(e) => handleInputChange(index, 'badge', e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      placeholder="e.g., A1-A2, Beginner, etc."
-                    />
-                  </div>
+                  placeholder="e.g., A1-A2, Beginner, etc."
+                />
+              </div>
 
-                  <div>
+              <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Duration
                     </label>
-                    <input
-                      type="text"
-                      value={level.duration}
+                <input
+                  type="text"
+                  value={level.duration}
                       onChange={(e) => handleInputChange(index, 'duration', e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      placeholder="e.g., 3 months"
-                    />
-                  </div>
+                  placeholder="e.g., 3 months"
+                />
+              </div>
 
-                  <div>
+              <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Weekly Hours
                     </label>
-                    <input
-                      type="number"
-                      value={level.weekly_hours}
+                <input
+                  type="number"
+                  value={level.weekly_hours}
                       onChange={(e) => handleInputChange(index, 'weekly_hours', parseInt(e.target.value, 10))}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      placeholder="e.g., 6"
-                    />
-                  </div>
-                </div>
+                  placeholder="e.g., 6"
+                />
+              </div>
+            </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Prerequisites
                   </label>
-                  <input
-                    type="text"
-                    value={level.prerequisites}
+              <input
+                type="text"
+                value={level.prerequisites}
                     onChange={(e) => handleInputChange(index, 'prerequisites', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+              />
+            </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Description
                   </label>
-                  <textarea
-                    value={level.description}
+              <textarea
+                value={level.description}
                     onChange={(e) => handleInputChange(index, 'description', e.target.value)}
                     rows={3}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+              />
+            </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Learning Outcomes
                   </label>
-                  <textarea
-                    value={level.learning_outcomes.join('\n')}
-                    onChange={(e) => handleOutcomesChange(index, e.target.value)}
-                    rows={4}
+              <textarea
+                value={level.learning_outcomes.join('\n')}
+                onChange={(e) => handleOutcomesChange(index, e.target.value)}
+                rows={4}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="Enter each outcome on a new line"
-                  />
-                </div>
+                placeholder="Enter each outcome on a new line"
+              />
+            </div>
               </div>
 
-              <button
-                type="button"
+            <button
+              type="button"
                 onClick={() => removeLevel(index)}
                 className="ml-4 text-red-600 hover:text-red-800"
-              >
+            >
                 <TrashIcon className="h-5 w-5" />
-              </button>
+            </button>
             </div>
           </div>
         ))}

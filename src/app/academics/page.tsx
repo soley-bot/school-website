@@ -10,6 +10,7 @@ interface Program {
   description: string
   slug: string
   theme: 'red' | 'blue'
+  type: 'english' | 'chinese' | 'ielts'
   features: Array<{
     icon: string
     title: string
@@ -49,6 +50,29 @@ export default function AcademicsPage() {
     )
   }
 
+  // Group programs by type
+  const groupedPrograms = programs.reduce((acc, program) => {
+    if (!acc[program.type]) {
+      acc[program.type] = []
+    }
+    acc[program.type].push(program)
+    return acc
+  }, {} as Record<string, Program[]>)
+
+  // Helper function to generate program URL
+  const getProgramUrl = (program: Program) => {
+    switch (program.type) {
+      case 'english':
+        return `/academics/general-english`
+      case 'chinese':
+        return `/academics/general-chinese`
+      case 'ielts':
+        return `/academics/ielts-preparation`
+      default:
+        return `/academics/${program.slug}`
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -83,80 +107,84 @@ export default function AcademicsPage() {
       {/* Programs Section */}
       <section id="programs" className="py-20">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            Our Language Programs
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {programs.map((program) => (
-              <Link
-                key={program.id}
-                href={`/academics/program/${program.slug}`}
-                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden"
-              >
-                <div className="p-8">
-                  <div className={`text-${program.theme === 'red' ? 'red' : 'blue'}-600 mb-4`}>
-                    <svg
-                      className="w-12 h-12"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-[#2596be] transition-colors duration-200">
-                    {program.name}
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    {program.description}
-                  </p>
-                  {program.features && program.features.length > 0 && (
-                    <div className="space-y-3">
-                      {program.features.slice(0, 3).map((feature, index) => (
-                        <div key={index} className="flex items-start">
-                          <svg
-                            className={`h-5 w-5 text-${program.theme === 'red' ? 'red' : 'blue'}-600 mr-2 mt-0.5 flex-shrink-0`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          <span className="text-gray-600">{feature.title}</span>
+          {Object.entries(groupedPrograms).map(([type, typePrograms]) => (
+            <div key={type} className="mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 capitalize">
+                {type.replace('-', ' ')} Programs
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {typePrograms.map((program) => (
+                  <Link
+                    key={program.id}
+                    href={getProgramUrl(program)}
+                    className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+                  >
+                    <div className="p-8">
+                      <div className={`text-${program.theme === 'red' ? 'red' : 'blue'}-600 mb-4`}>
+                        <svg
+                          className="w-12 h-12"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-[#2596be] transition-colors duration-200">
+                        {program.name}
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        {program.description}
+                      </p>
+                      {program.features && program.features.length > 0 && (
+                        <div className="space-y-3">
+                          {program.features.slice(0, 3).map((feature, index) => (
+                            <div key={index} className="flex items-start">
+                              <svg
+                                className={`h-5 w-5 text-${program.theme === 'red' ? 'red' : 'blue'}-600 mr-2 mt-0.5 flex-shrink-0`}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                              <span className="text-gray-600">{feature.title}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
+                      <div className="mt-8 flex items-center text-[#2596be] font-medium">
+                        Learn More
+                        <svg
+                          className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                  )}
-                  <div className="mt-8 flex items-center text-[#2596be] font-medium">
-                    Learn More
-                    <svg
-                      className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

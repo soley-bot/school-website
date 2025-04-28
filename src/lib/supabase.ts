@@ -1,38 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
-import { createServerClient } from '@supabase/ssr'
+import { createBrowserClient } from '@supabase/ssr'
 import { type Database } from './database.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Create a single client component client
+export function getClientComponentClient() {
+  return createBrowserClient<Database>(
+    supabaseUrl,
+    supabaseAnonKey
+  )
+}
+
 // Create a single supabase client for the entire app
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
-
-// Create a single client component client
-let clientInstance: ReturnType<typeof createServerClient> | null = null
-
-export function getClientComponentClient() {
-  if (!clientInstance) {
-    clientInstance = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return ''
-          },
-          set(name: string, value: string, options: any) {
-            // Handle cookie setting
-          },
-          remove(name: string, options: any) {
-            // Handle cookie removal
-          }
-        }
-      }
-    )
-  }
-  return clientInstance
-}
 
 export type HeroContent = {
   id: string

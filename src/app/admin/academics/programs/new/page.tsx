@@ -31,6 +31,67 @@ interface CourseMaterial {
   level: string
 }
 
+// Add initial test data
+const initialPrograms = [
+  {
+    name: 'General English',
+    slug: 'english-general',
+    type: 'english',
+    description: 'Comprehensive English language program for all levels',
+    theme: 'blue',
+    features: [
+      {
+        title: 'Native Speakers',
+        icon: 'users',
+        description: 'Learn from experienced native English speakers'
+      },
+      {
+        title: 'All Levels',
+        icon: 'academic',
+        description: 'From beginner to advanced levels'
+      }
+    ]
+  },
+  {
+    name: 'General Chinese',
+    slug: 'chinese-general',
+    type: 'chinese',
+    description: 'Learn Mandarin Chinese from basic to advanced',
+    theme: 'red',
+    features: [
+      {
+        title: 'Native Teachers',
+        icon: 'users',
+        description: 'Learn from native Chinese speakers'
+      },
+      {
+        title: 'HSK Preparation',
+        icon: 'academic',
+        description: 'Prepare for HSK examinations'
+      }
+    ]
+  },
+  {
+    name: 'IELTS Preparation',
+    slug: 'english-ielts',
+    type: 'ielts',
+    description: 'Specialized program for IELTS exam preparation',
+    theme: 'blue',
+    features: [
+      {
+        title: 'Exam Strategies',
+        icon: 'book',
+        description: 'Learn effective IELTS test strategies'
+      },
+      {
+        title: 'Practice Tests',
+        icon: 'academic',
+        description: 'Regular mock tests and feedback'
+      }
+    ]
+  }
+];
+
 export default function NewProgramPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -66,6 +127,7 @@ export default function NewProgramPage() {
     features: [] as ProgramFeature[],
     course_materials: [] as CourseMaterial[],
   })
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const handleAddLevel = () => {
     setFormData({
@@ -243,6 +305,51 @@ export default function NewProgramPage() {
       setIsSubmitting(false)
     }
   }
+
+  const initializeTestData = async () => {
+    setIsInitializing(true);
+    try {
+      for (const program of initialPrograms) {
+        // First create the program
+        const { data: programData, error: programError } = await supabase
+          .from('program_pages')
+          .insert({
+            name: program.name,
+            slug: program.slug,
+            type: program.type,
+            description: program.description,
+            theme: program.theme
+          })
+          .select()
+          .single();
+
+        if (programError) throw programError;
+
+        // Then add its features
+        const { error: featuresError } = await supabase
+          .from('program_pages_features')
+          .insert(
+            program.features.map((feature, index) => ({
+              program_id: programData.id,
+              title: feature.title,
+              icon: feature.icon,
+              description: feature.description,
+              sort_order: index
+            }))
+          );
+
+        if (featuresError) throw featuresError;
+      }
+
+      toast.success('Test data initialized successfully');
+      router.refresh();
+    } catch (error) {
+      console.error('Error initializing test data:', error);
+      toast.error('Failed to initialize test data');
+    } finally {
+      setIsInitializing(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -732,6 +839,24 @@ export default function NewProgramPage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Initialize Test Data</h2>
+        <button
+          onClick={initializeTestData}
+          disabled={isInitializing}
+          className="inline-flex items-center px-4 py-2 text-white bg-[#2596be] rounded-md hover:bg-[#1a7290] disabled:opacity-50"
+        >
+          {isInitializing ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+              Initializing...
+            </>
+          ) : (
+            'Initialize Test Data'
+          )}
+        </button>
+      </div>
     </div>
   )
 } 

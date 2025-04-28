@@ -1,14 +1,28 @@
 import React from 'react'
 
 interface ScheduleTime {
-  morning?: string[]
-  afternoon?: string[]
-  evening?: string[]
-  weekend?: {
-    saturday?: string
-    sunday?: string
-    general?: string
+  morning: string
+  afternoon: string
+  evening: string
+}
+
+interface Duration {
+  weekday: {
+    hours: number
+    minutes: number
   }
+  weekend: {
+    hours: number
+    minutes: number
+  }
+}
+
+interface ProgramScheduleProps {
+  isAdult?: boolean
+  scheduleTime: ScheduleTime
+  duration: Duration
+  tuitionFees: TuitionLevel[]
+  programType: 'english' | 'chinese'
 }
 
 interface TuitionLevel {
@@ -16,32 +30,33 @@ interface TuitionLevel {
   levels: string[]
 }
 
-interface ProgramScheduleProps {
-  isAdult?: boolean
-  scheduleTime: ScheduleTime
-  tuitionFees: TuitionLevel[]
-  programType: 'english' | 'chinese'
+const defaultSchedule: ScheduleTime = {
+  morning: '',
+  afternoon: '',
+  evening: ''
 }
 
-const defaultSchedule: ScheduleTime = {
-  morning: [],
-  afternoon: [],
-  evening: [],
-  weekend: {
-    saturday: '',
-    sunday: '',
-    general: ''
-  }
+const defaultDuration: Duration = {
+  weekday: { hours: 0, minutes: 0 },
+  weekend: { hours: 0, minutes: 0 }
 }
 
 export default function ProgramSchedule({
   isAdult = false,
   scheduleTime = defaultSchedule,
+  duration = defaultDuration,
   tuitionFees = [],
   programType,
 }: ProgramScheduleProps) {
   const flagSrc = programType === 'english' ? '🇺🇸' : '🇨🇳'
   const schedule = { ...defaultSchedule, ...scheduleTime }
+
+  const formatDuration = (hours: number, minutes: number) => {
+    const parts = []
+    if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`)
+    if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`)
+    return parts.join(' and ')
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 my-8">
@@ -51,47 +66,40 @@ export default function ProgramSchedule({
           <span className="text-2xl">{flagSrc}</span>
         </div>
         <div className="space-y-4">
-          {schedule.morning && schedule.morning.length > 0 && (
+          {schedule.morning && (
             <div className="flex items-center">
               <span className="w-32 font-semibold text-gray-700">Morning</span>
-              <span className="text-gray-600">{schedule.morning.join(' | ')}</span>
+              <span className="text-gray-600">{schedule.morning}</span>
             </div>
           )}
-          {schedule.afternoon && schedule.afternoon.length > 0 && (
+          {schedule.afternoon && (
             <div className="flex items-center">
               <span className="w-32 font-semibold text-gray-700">Afternoon</span>
-              <span className="text-gray-600">{schedule.afternoon.join(' | ')}</span>
+              <span className="text-gray-600">{schedule.afternoon}</span>
             </div>
           )}
-          {schedule.evening && schedule.evening.length > 0 && (
+          {schedule.evening && (
             <div className="flex items-center">
               <span className="w-32 font-semibold text-gray-700">Evening</span>
-              <span className="text-gray-600">{schedule.evening.join(' | ')}</span>
+              <span className="text-gray-600">{schedule.evening}</span>
             </div>
           )}
-          {schedule.weekend && (
-            <div className="mt-6">
-              <h4 className="font-semibold text-gray-900 mb-3">Weekends</h4>
-              {schedule.weekend.saturday && (
-                <div className="flex items-center mb-2">
-                  <span className="w-32 font-semibold text-gray-700">Saturday</span>
-                  <span className="text-gray-600">{schedule.weekend.saturday}</span>
-                </div>
-              )}
-              {schedule.weekend.sunday && (
-                <div className="flex items-center">
-                  <span className="w-32 font-semibold text-gray-700">Sunday</span>
-                  <span className="text-gray-600">{schedule.weekend.sunday}</span>
-                </div>
-              )}
-              {schedule.weekend.general && (
-                <div className="flex items-center">
-                  <span className="w-32 font-semibold text-gray-700">Weekend</span>
-                  <span className="text-gray-600">{schedule.weekend.general}</span>
-                </div>
-              )}
+          
+          <div className="mt-6">
+            <h4 className="font-semibold text-gray-900 mb-3">Duration</h4>
+            <div className="flex items-center mb-2">
+              <span className="w-32 font-semibold text-gray-700">Weekday</span>
+              <span className="text-gray-600">
+                {formatDuration(duration.weekday.hours, duration.weekday.minutes)}
+              </span>
             </div>
-          )}
+            <div className="flex items-center">
+              <span className="w-32 font-semibold text-gray-700">Weekend</span>
+              <span className="text-gray-600">
+                {formatDuration(duration.weekend.hours, duration.weekend.minutes)}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -63,18 +63,12 @@ export async function middleware(request: NextRequest) {
 
     const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
 
-    // If authenticated and trying to access login page, redirect to admin homepage
+    // If authenticated and on the login page, redirect to original URL or admin homepage
     if (session && pathname === '/admin/login') {
-      console.log('Redirecting authenticated user from login to admin homepage')
-      // Get the intended redirect path or default to homepage
-      const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+      const params = new URLSearchParams(request.nextUrl.search)
+      const redirectTo = params.get('redirectTo')
       const targetPath = redirectTo ? decodeURIComponent(redirectTo) : '/admin/homepage'
-      
-      // Prevent redirect loops
-      if (targetPath === '/admin/login') {
-        return NextResponse.redirect(new URL('/admin/homepage', request.url))
-      }
-      
+      console.log('Redirecting authenticated user from login to:', targetPath)
       return NextResponse.redirect(new URL(targetPath, request.url))
     }
     
@@ -83,7 +77,7 @@ export async function middleware(request: NextRequest) {
       console.log('Unauthorized access attempt - redirecting to login')
       const redirectUrl = new URL('/admin/login', request.url)
       // Store the original URL to redirect back after login
-      redirectUrl.searchParams.set('redirectTo', pathname)
+      redirectUrl.searchParams.set('redirectTo', encodeURIComponent(pathname))
       return NextResponse.redirect(redirectUrl)
     }
 
@@ -118,7 +112,9 @@ export async function middleware(request: NextRequest) {
     })
 
     if (!pathname.startsWith('/admin/login')) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      const redirectUrl = new URL('/admin/login', request.url)
+      redirectUrl.searchParams.set('redirectTo', encodeURIComponent(pathname))
+      return NextResponse.redirect(redirectUrl)
     }
     return response
   }

@@ -99,6 +99,7 @@ export default function AcademicProgramEditor({ programId }: AcademicProgramEdit
         id: string;
         name: string;
         slug: string;
+        type: string;
         description: string;
         theme: 'blue' | 'red';
         hero_image: string;
@@ -117,13 +118,21 @@ export default function AcademicProgramEditor({ programId }: AcademicProgramEdit
         id: programData.id,
         name: programData.name,
         slug: programData.slug,
+        type: (['english', 'chinese', 'ielts'].includes(programData.type) ? programData.type : 'english') as 'english' | 'chinese' | 'ielts',
         description: programData.description,
-        theme: programData.theme,
+        theme: programData.theme === 'red' ? 'red' : 'blue',
         hero_image: programData.hero_image,
-        features: programData.features || [],
-        levels: programData.levels || [],
-        schedule: programData.schedule,
-        tuition: programData.tuition || [],
+        features: [],
+        levels: [],
+        schedule: {
+          id: '',
+          program_id: programData.id,
+          times: { morning: [], afternoon: [], evening: [] },
+          duration: { weekday: { hours: 0, minutes: 0 }, weekend: { hours: 0, minutes: 0 } },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        tuition: [],
         created_at: programData.created_at,
         updated_at: programData.updated_at
       });

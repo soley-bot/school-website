@@ -21,21 +21,15 @@ interface Program {
 
 // Helper function to get the correct program URL
 const getProgramUrl = (slug: string) => {
-  // Map of static program pages
-  const staticPrograms = {
-    'general-english': true,
-    'general-chinese': true,
-    'chinese-primary': true,
-    'ielts-preparation': true
+  // Map database slugs to URL slugs
+  const slugMap: Record<string, string> = {
+    'english-general': 'general-english',
+    'chinese-general': 'general-chinese',
+    'english-ielts': 'ielts-preparation'
   }
 
-  // If it's a static program, use the direct route
-  if (staticPrograms[slug as keyof typeof staticPrograms]) {
-    return `/academics/${slug}`
-  }
-
-  // Otherwise, use the dynamic route
-  return `/academics/program/${slug}`
+  // Use the mapped slug if it exists, otherwise use the original slug
+  return `/academics/${slugMap[slug] || slug}`
 }
 
 export default function AcademicsAdmin() {
@@ -71,6 +65,7 @@ export default function AcademicsAdmin() {
 
   const loadPrograms = async () => {
     try {
+      console.log('Loading programs...')
       const { data, error } = await supabase
         .from('program_pages')
         .select(`
@@ -86,6 +81,7 @@ export default function AcademicsAdmin() {
 
       if (error) throw error
 
+      console.log('Loaded programs:', data)
       setPrograms(data || [])
     } catch (error) {
       console.error('Error loading programs:', error)
@@ -96,6 +92,7 @@ export default function AcademicsAdmin() {
   }
 
   const handleEditProgram = (programId: string) => {
+    console.log('Editing program:', programId)
     router.push(`/admin/academics/programs/${programId}`)
   }
 
@@ -115,9 +112,9 @@ export default function AcademicsAdmin() {
     try {
       // Delete all related records first
       const promises = [
-        supabase.from('program_features').delete().eq('program_id', programId),
-        supabase.from('program_levels').delete().eq('program_id', programId),
-        supabase.from('program_content').delete().eq('program_id', programId),
+        supabase.from('program_pages_features').delete().eq('program_id', programId),
+        supabase.from('program_pages_levels').delete().eq('program_id', programId),
+        supabase.from('program_pages_content').delete().eq('program_id', programId),
         supabase.from('program_schedule').delete().eq('program_id', programId),
         supabase.from('program_tuition').delete().eq('program_id', programId),
         supabase.from('course_materials').delete().eq('program_id', programId),

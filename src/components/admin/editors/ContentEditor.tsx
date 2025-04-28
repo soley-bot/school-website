@@ -1,36 +1,45 @@
 'use client'
 
-import React, { useState } from 'react';
-import type { ProgramContent } from '@/types/database';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+import type { ProgramPageContent } from '@/types/database';
+import { toast } from 'react-hot-toast';
 
 interface ContentEditorProps {
-  content: ProgramContent | null;
+  content: ProgramPageContent | null;
   programId: string;
-  onUpdate: (content: ProgramContent) => Promise<void>;
+  onUpdate: (content: ProgramPageContent) => void;
 }
 
 interface ContentData {
   text: string;
+  image: string;
   whyChooseTitle: string;
-  whyChooseText: string[];
+  whyChooseText: Array<string>;
 }
 
+interface FormData {
+  content: ContentData;
+}
+
+const defaultContent: ContentData = {
+  text: '',
+  image: '',
+  whyChooseTitle: '',
+  whyChooseText: []
+};
+
 export default function ContentEditor({ content, programId, onUpdate }: ContentEditorProps) {
-  const [formData, setFormData] = useState<ProgramContent>(
-    content || {
-      id: `new-${Date.now()}`,
-      program_id: programId,
-      section: 'introduction',
-      content: {
-        text: '',
-        whyChooseTitle: 'Why Choose Our Program?',
-        whyChooseText: ['', '']
-      } as ContentData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+  const [formData, setFormData] = useState<FormData>({
+    content: content?.content || defaultContent
+  });
+
+  useEffect(() => {
+    if (content) {
+      setFormData({
+        content: content.content || defaultContent
+      });
     }
-  );
+  }, [content]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -38,6 +47,16 @@ export default function ContentEditor({ content, programId, onUpdate }: ContentE
       content: {
         ...prev.content,
         text: e.target.value
+      }
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        image: e.target.value
       }
     }));
   };
@@ -64,86 +83,112 @@ export default function ContentEditor({ content, programId, onUpdate }: ContentE
     }));
   };
 
-  const addWhyChooseText = () => {
+  const removeWhyChooseText = (index: number) => {
+    const newWhyChooseText = [...(formData.content.whyChooseText || [])];
+    newWhyChooseText.splice(index, 1);
     setFormData(prev => ({
       ...prev,
       content: {
         ...prev.content,
-        whyChooseText: [...(prev.content.whyChooseText || []), '']
+        whyChooseText: newWhyChooseText
       }
     }));
   };
 
-  const removeWhyChooseText = (index: number) => {
+  const addWhyChooseText = () => {
+    const newWhyChooseText = [...(formData.content.whyChooseText || []), ''];
     setFormData(prev => ({
       ...prev,
       content: {
         ...prev.content,
-        whyChooseText: (prev.content.whyChooseText || []).filter((_, i) => i !== index)
+        whyChooseText: newWhyChooseText
       }
     }));
   };
 
   const handleSave = () => {
-    onUpdate(formData);
+    const updatedContent: ProgramPageContent = {
+      id: content?.id || '',
+      program_id: programId,
+      section: 'introduction',
+      content: formData.content,
+      created_at: content?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    onUpdate(updatedContent);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Program Introduction
+        <label className="block text-sm font-medium text-gray-700">
+          Introduction Text
         </label>
         <textarea
           value={formData.content.text}
           onChange={handleTextChange}
-          rows={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          placeholder="Write a detailed introduction about the program..."
+          rows={4}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+          placeholder="Enter program introduction..."
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Why Choose Title
+        <label className="block text-sm font-medium text-gray-700">
+          Introduction Image URL
+        </label>
+        <input
+          type="text"
+          value={formData.content.image}
+          onChange={handleImageChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+          placeholder="Enter image URL..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Why Choose Us Title
         </label>
         <input
           type="text"
           value={formData.content.whyChooseTitle}
           onChange={handleWhyChooseTitleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+          placeholder="Enter section title..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Why Choose Points
+          Why Choose Us Points
         </label>
         <div className="space-y-2">
-          {(formData.content.whyChooseText || []).map((text, index) => (
+          {formData.content.whyChooseText?.map<JSX.Element>((text: string, index: number) => (
             <div key={index} className="flex gap-2">
               <input
                 type="text"
                 value={text}
                 onChange={(e) => handleWhyChooseTextChange(index, e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="Add a reason to choose this program..."
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2596be] focus:ring-[#2596be] sm:text-sm"
+                placeholder="Enter a reason"
               />
               <button
                 type="button"
                 onClick={() => removeWhyChooseText(index)}
-                className="text-red-600 hover:text-red-800 p-2"
+                className="inline-flex items-center px-2 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200"
               >
-                <TrashIcon className="w-5 h-5" />
+                Remove
               </button>
             </div>
           ))}
           <button
             type="button"
             onClick={addWhyChooseText}
-            className="text-blue-600 hover:text-blue-800"
+            className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-[#2596be] bg-[#2596be]/10 hover:bg-[#2596be]/20"
           >
-            + Add Point
+            Add Point
           </button>
         </div>
       </div>
@@ -152,7 +197,7 @@ export default function ContentEditor({ content, programId, onUpdate }: ContentE
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="inline-flex justify-center rounded-md border border-transparent bg-[#2596be] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-[#2596be] focus:ring-offset-2"
         >
           Save Content
         </button>

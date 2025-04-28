@@ -30,8 +30,8 @@ export default function MaterialsEditor({ materials, programId, onUpdate }: Mate
       const newData = [...prev];
       newData[index] = {
         ...newData[index],
-        [field]: value
-      };
+      [field]: value
+    };
       return newData;
     });
   };
@@ -69,19 +69,19 @@ export default function MaterialsEditor({ materials, programId, onUpdate }: Mate
           <div key={material.id} className="border border-gray-200 rounded-lg p-4 space-y-4">
             <div className="flex justify-between items-start">
               <div className="flex-1 space-y-4">
-                <div>
+            <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Material Name
                   </label>
-                  <input
-                    type="text"
+              <input
+                type="text"
                     value={material.name}
                     onChange={(e) => handleInputChange(index, 'name', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+              />
+            </div>
 
-                <div>
+            <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Description
                   </label>
@@ -90,10 +90,10 @@ export default function MaterialsEditor({ materials, programId, onUpdate }: Mate
                     onChange={(e) => handleInputChange(index, 'description', e.target.value)}
                     rows={3}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+              />
+            </div>
 
-                <div>
+            <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Image
                   </label>
@@ -103,20 +103,20 @@ export default function MaterialsEditor({ materials, programId, onUpdate }: Mate
                     folder="course-materials"
                     id={material.id}
                     className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => removeMaterial(index)}
-                className="ml-4 text-red-600 hover:text-red-800"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
+              />
             </div>
           </div>
-        ))}
+
+          <button
+            type="button"
+            onClick={() => removeMaterial(index)}
+                className="ml-4 text-red-600 hover:text-red-800"
+          >
+                <TrashIcon className="h-5 w-5" />
+          </button>
+            </div>
+        </div>
+      ))}
       </div>
 
       <div className="flex justify-between">

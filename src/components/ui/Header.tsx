@@ -7,19 +7,28 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Fragment, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Database } from '@/types/database'
 
-interface Program {
-  id: string
-  name: string
-  description: string
-  slug: string
-  theme: 'red' | 'blue'
-  features: Array<{
-    icon: string
-    title: string
-    description: string
-  }>
+type ProgramPage = Database['public']['Tables']['program_pages']['Row']
+
+// Define only the program fields we need for the header
+interface HeaderProgram {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'english' | 'chinese' | 'ielts';
 }
+
+interface GroupedPrograms {
+  [key: string]: HeaderProgram[]
+}
+
+// Define program categories
+const PROGRAM_TYPES = {
+  'english': 'English Programs',
+  'chinese': 'Chinese Programs',
+  'ielts': 'IELTS Programs'
+} as const
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -30,7 +39,7 @@ const navigation = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [programs, setPrograms] = useState<Program[]>([])
+  const [groupedPrograms, setGroupedPrograms] = useState<GroupedPrograms>({})
   const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
   const isAdminPage = pathname.startsWith('/admin')
@@ -38,24 +47,42 @@ export default function Header() {
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        const { data, error } = await supabase
+        console.log('Fetching programs...')
+        const { data: programData, error: programError } = await supabase
           .from('program_pages')
-          .select('id, name, description, slug, theme, features')
-          .order('created_at', { ascending: true })
+          .select('id, name, slug, type')
+          .order('name')
 
-        if (error) throw error
+        if (programError) {
+          console.error('Error fetching programs:', programError)
+          throw programError
+        }
 
-        // Parse features if they are stored as a string
-        const parsedPrograms = data?.map(program => ({
-          ...program,
-          features: typeof program.features === 'string' 
-            ? JSON.parse(program.features) 
-            : program.features || []
-        })) || []
+        if (!programData) {
+          console.log('No programs found')
+          setGroupedPrograms({})
+          return
+        }
 
-        setPrograms(parsedPrograms)
+        console.log('Programs fetched:', programData)
+
+        // Group programs by type
+        const grouped = (programData as HeaderProgram[]).reduce<GroupedPrograms>((acc, program) => {
+          // Get the display name for the type
+          const displayType = PROGRAM_TYPES[program.type] || 'Other Programs'
+
+          if (!acc[displayType]) {
+            acc[displayType] = []
+          }
+          acc[displayType].push(program)
+          return acc
+        }, {})
+
+        console.log('Grouped programs:', grouped)
+        setGroupedPrograms(grouped)
       } catch (error) {
-        console.error('Error fetching programs:', error)
+        console.error('Error in fetchPrograms:', error)
+        setGroupedPrograms({})
       } finally {
         setIsLoading(false)
       }
@@ -80,7 +107,7 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-12 h-12">
+            <div className="relative w-12  h-12">
               <Image
                 src="/images/logo.png"
                 alt="STANFORD American School"
@@ -91,7 +118,7 @@ export default function Header() {
               />
             </div>
             <span className="text-sm font-medium text-gray-900">
-              STANFORD American School
+              STANFORD AMERICAN SCHOOL
             </span>
           </Link>
           
@@ -109,99 +136,87 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+
             {/* Academics Dropdown */}
-            <Menu as="div" className="relative">
-              {({ open }) => (
-                <>
-                  <Menu.Button
-                    className={`${
-                      isAcademicsActive()
-                        ? 'text-gray-900 font-medium'
-                        : 'text-gray-500 hover:text-gray-900'
-                    } group px-1 py-2 text-sm transition-colors duration-200 inline-flex items-center`}
-                  >
-                    Academics
-                    <ChevronDownIcon
-                      className={`ml-1 h-4 w-4 transition-transform duration-200 ${
-                        open ? 'rotate-180' : ''
-                      } ${isAcademicsActive() ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'}`}
-                      aria-hidden="true"
-                    />
-                  </Menu.Button>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-200"
-                    enterFrom="opacity-0 translate-y-1"
-                    enterTo="opacity-100 translate-y-0"
-                    leave="transition ease-in duration-150"
-                    leaveFrom="opacity-100 translate-y-0"
-                    leaveTo="opacity-0 translate-y-1"
-                  >
-                    <Menu.Items className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-lg bg-white py-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <div className="relative inline-block text-left">
+              <Menu>
+                <Menu.Button className={`${
+                  isAcademicsActive()
+                    ? 'text-gray-900 font-medium'
+                    : 'text-gray-500 hover:text-gray-900'
+                } group px-1 py-2 text-sm transition-colors duration-200 inline-flex items-center focus:outline-none`}>
+                  Academics
+                  <ChevronDownIcon
+                    className="ml-1 h-4 w-4 text-gray-400 group-hover:text-gray-600"
+                    aria-hidden="true"
+                  />
+                </Menu.Button>
+
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute left-0 z-50 mt-2 w-72 origin-top-left bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
                       {isLoading ? (
-                        <div className="px-4 py-3 text-sm text-gray-500">
+                        <div className="px-4 py-2 text-sm text-gray-500">
                           Loading programs...
                         </div>
-                      ) : (
-                        programs.map((program) => (
-                          <Menu.Item key={program.id}>
-                            {({ active }) => (
-                              <Link
-                                href={`/academics/program/${program.slug}`}
-                                className={`${
-                                  active || isActive(`/academics/program/${program.slug}`)
-                                    ? 'bg-gray-50'
-                                    : ''
-                                } block px-4 py-3 hover:bg-gray-50`}
-                              >
-                                <p className="text-sm font-medium text-gray-900">
-                                  {program.name}
-                                </p>
-                                <p className="mt-1 text-sm text-gray-500">
-                                  {program.description}
-                                </p>
-                                {program.features && program.features.length > 0 && (
-                                  <div className="mt-2 flex flex-wrap gap-2">
-                                    {program.features.slice(0, 2).map((feature, index) => (
-                                      <span
-                                        key={index}
-                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                                          program.theme === 'red'
-                                            ? 'bg-red-100 text-red-800'
-                                            : 'bg-blue-100 text-blue-800'
-                                        }`}
-                                      >
-                                        {feature.title}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </Link>
-                            )}
-                          </Menu.Item>
-                        ))
-                      )}
-                      {isAdminPage && (
-                        <div className="border-t mt-2 pt-2">
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/admin/academics/programs/new"
-                                className={`${
-                                  active ? 'bg-gray-50' : ''
-                                } block px-4 py-2 text-sm font-medium text-gray-900`}
-                              >
-                                + Create New Program
-                              </Link>
-                            )}
-                          </Menu.Item>
+                      ) : Object.keys(groupedPrograms).length === 0 ? (
+                        <div className="px-4 py-2 text-sm text-gray-500">
+                          No programs available
                         </div>
+                      ) : (
+                        <>
+                          {Object.entries(groupedPrograms).map(([type, programs]) => (
+                            <div key={type}>
+                              <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+                                {type}
+                              </div>
+                              {programs.map((program) => (
+                                <Menu.Item key={program.id}>
+                                  {({ active }) => (
+                                    <Link
+                                      href={`/academics/${program.slug}`}
+                                      className={`${
+                                        active ? 'bg-gray-100' : ''
+                                      } block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50`}
+                                    >
+                                      {program.name}
+                                    </Link>
+                                  )}
+                                </Menu.Item>
+                              ))}
+                            </div>
+                          ))}
+                          {isAdminPage && (
+                            <div className="border-t">
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <Link
+                                    href="/admin/academics/programs/new"
+                                    className={`${
+                                      active ? 'bg-gray-100' : ''
+                                    } block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50`}
+                                  >
+                                    + Create New Program
+                                  </Link>
+                                )}
+                              </Menu.Item>
+                            </div>
+                          )}
+                        </>
                       )}
-                    </Menu.Items>
-                  </Transition>
-                </>
-              )}
-            </Menu>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+            </div>
           </nav>
 
           {/* Mobile menu button */}
@@ -233,7 +248,7 @@ export default function Header() {
       {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden">
-          <div className="space-y-1 px-4 pb-3 pt-2">
+          <div className="space-y-1 px-2 pb-3 pt-2">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -242,69 +257,43 @@ export default function Header() {
                   isActive(item.href)
                     ? 'bg-gray-50 text-gray-900 font-medium'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                } block px-3 py-2 text-base rounded-md`}
+                } block px-3 py-2 rounded-md text-base font-medium`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
             {/* Mobile Academics Menu */}
-            <div className="pt-4">
-              <div className={`${
-                isAcademicsActive()
-                  ? 'text-gray-900 font-medium'
-                  : 'text-gray-500'
-              } px-3 text-base`}>
-                Academics
+            <div className="border-t border-gray-200 pt-4">
+              <div className="px-3 text-base font-medium text-gray-500">
+                Academic Programs
               </div>
-              <div className="mt-2 space-y-1">
-                {isLoading ? (
-                  <div className="px-3 py-2 text-sm text-gray-500">
-                    Loading programs...
+              {!isLoading && Object.keys(groupedPrograms).map((type) => (
+                <div key={type}>
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+                    {type}
                   </div>
-                ) : (
-                  programs.map((program) => (
+                  {groupedPrograms[type].map((program) => (
                     <Link
                       key={program.id}
-                      href={`/academics/program/${program.slug}`}
-                      className={`${
-                        isActive(`/academics/program/${program.slug}`)
-                          ? 'bg-gray-50 text-gray-900 font-medium'
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                      } block px-3 py-2 text-sm rounded-md`}
+                      href={`/academics/${program.slug}`}
+                      className="block px-3 py-2 text-base text-gray-900 hover:bg-gray-50"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <p className="font-medium">{program.name}</p>
-                      <p className="mt-1 text-xs text-gray-500">{program.description}</p>
-                      {program.features && program.features.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {program.features.slice(0, 2).map((feature, index) => (
-                            <span
-                              key={index}
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                                program.theme === 'red'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}
-                            >
-                              {feature.title}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {program.name}
                     </Link>
-                  ))
-                )}
-                {isAdminPage && (
-                  <Link
-                    href="/admin/academics/programs/new"
-                    className="block px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    + Create New Program
-                  </Link>
-                )}
-              </div>
+                  ))}
+                </div>
+              ))}
+              {isAdminPage && (
+                <Link
+                  href="/admin/academics/programs/new"
+                  className="block px-3 py-2 mt-2 text-base text-[#2596be] hover:bg-gray-50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  + Create New Program
+                </Link>
+              )}
             </div>
           </div>
         </div>

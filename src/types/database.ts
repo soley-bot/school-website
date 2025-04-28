@@ -2,6 +2,7 @@ export interface Program {
   id: string;
   name: string;
   slug: string;
+  type: 'english' | 'chinese' | 'ielts';
   description: string;
   theme: 'blue' | 'red';
   hero_image: string | File;
@@ -11,21 +12,13 @@ export interface Program {
   tuition: ProgramTuition[];
   created_at: string;
   updated_at: string;
-  introduction?: {
-    image?: string;
-  };
 }
 
 export interface ProgramContent {
   id: string;
   program_id: string;
   section: string;
-  content: {
-    text?: string;
-    image?: string;
-    whyChooseTitle?: string;
-    whyChooseText?: string[];
-  };
+  content: any;
   created_at: string;
   updated_at: string;
 }
@@ -36,13 +29,13 @@ export interface ProgramLevel {
   title: string;
   badge: string;
   duration: string;
-  weekly_hours: number;
+  weekly_hours: string;
   prerequisites: string;
   description: string;
-  learning_outcomes: string[];
+  outcomes: string[];
   sort_order: number;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProgramFeature {
@@ -50,32 +43,19 @@ export interface ProgramFeature {
   program_id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: 'academic' | 'users' | 'chat' | 'puzzle' | 'globe' | 'clock' | 'book' | 'trophy';
   sort_order: number;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProgramSchedule {
   id: string;
   program_id: string;
-  times: {
-    morning: string;
-    afternoon: string;
-    evening: string;
-  };
-  duration: {
-    weekday: {
-      hours: number;
-      minutes: number;
-    };
-    weekend: {
-      hours: number;
-      minutes: number;
-    };
-  };
-  created_at?: string;
-  updated_at?: string;
+  times: any;
+  duration: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProgramTuition {
@@ -83,7 +63,6 @@ export interface ProgramTuition {
   program_id: string;
   price: number;
   levels: string[];
-  applicable_levels: number[];
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -92,10 +71,13 @@ export interface ProgramTuition {
 export interface CourseMaterial {
   id: string;
   program_id: string;
-  name: string;
+  title: string;
   description: string;
-  image_url?: string;
-  created_at?: string;
+  image: string;
+  level: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Feature {
@@ -120,6 +102,101 @@ export interface Schedule {
       minutes: number;
     };
   };
+}
+
+export interface ProgramPage {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'english' | 'chinese' | 'ielts';
+  description: string;
+  theme: 'blue' | 'red';
+  hero_image: string | File;
+  features: ProgramPageFeature[];
+  levels: ProgramPageLevel[];
+  schedule: ProgramPageSchedule;
+  tuition: ProgramPageTuition[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageContent {
+  id: string;
+  program_id: string;
+  section: string;
+  content: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageLevel {
+  id: string;
+  program_id: string;
+  title: string;
+  badge: string;
+  duration: string;
+  weekly_hours: string;
+  prerequisites: string;
+  description: string;
+  outcomes: string[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageFeature {
+  id: string;
+  program_id: string;
+  title: string;
+  description: string;
+  icon: 'academic' | 'users' | 'chat' | 'puzzle' | 'globe' | 'clock' | 'book' | 'trophy';
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageSchedule {
+  id: string;
+  program_id: string;
+  times: {
+    morning: string[];
+    afternoon: string[];
+    evening: string[];
+  };
+  duration: {
+    weekday: {
+      label: string;
+      duration: string;
+    };
+    weekend: {
+      label: string;
+      duration: string;
+    };
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageTuition {
+  id: string;
+  program_id: string;
+  price: number;
+  levels: string[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramPageMaterial {
+  id: string;
+  program_id: string;
+  title: string;
+  description: string;
+  image: string;
+  level: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Database {
@@ -159,6 +236,41 @@ export interface Database {
         Row: CourseMaterial;
         Insert: Omit<CourseMaterial, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<CourseMaterial, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages: {
+        Row: ProgramPage;
+        Insert: Omit<ProgramPage, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPage, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_content: {
+        Row: ProgramPageContent;
+        Insert: Omit<ProgramPageContent, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageContent, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_levels: {
+        Row: ProgramPageLevel;
+        Insert: Omit<ProgramPageLevel, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageLevel, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_features: {
+        Row: ProgramPageFeature;
+        Insert: Omit<ProgramPageFeature, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageFeature, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_schedule: {
+        Row: ProgramPageSchedule;
+        Insert: Omit<ProgramPageSchedule, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageSchedule, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_tuition: {
+        Row: ProgramPageTuition;
+        Insert: Omit<ProgramPageTuition, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageTuition, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      program_pages_materials: {
+        Row: ProgramPageMaterial;
+        Insert: Omit<ProgramPageMaterial, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ProgramPageMaterial, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };

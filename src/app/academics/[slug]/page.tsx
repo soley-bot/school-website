@@ -13,6 +13,8 @@ interface Program {
   id: string
   name: string
   description: string
+  slug: string
+  type: 'english' | 'chinese' | 'ielts'
   theme: 'red' | 'blue'
   introduction: {
     text: string
@@ -59,6 +61,13 @@ interface Program {
   }>
 }
 
+// Map URL slugs to database slugs
+const urlToDbSlug: Record<string, string> = {
+  'general-english': 'english-general',
+  'general-chinese': 'chinese-general',
+  'ielts-preparation': 'english-ielts'
+}
+
 export default function ProgramPage({ params }: { params: { slug: string } }) {
   const [program, setProgram] = useState<Program | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -67,13 +76,38 @@ export default function ProgramPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const fetchProgram = async () => {
       try {
-        const { data, error } = await supabase
+        // Convert URL slug to database slug
+        const dbSlug = urlToDbSlug[params.slug] || params.slug
+
+        // First try to find by slug
+        let { data, error } = await supabase
           .from('program_pages')
           .select('*')
-          .eq('slug', params.slug)
+          .eq('slug', dbSlug)
           .single()
 
-        if (error) throw error
+        if (error) {
+          // If not found by slug, try to find by type
+          const typeMap: Record<string, string> = {
+            'general-english': 'english',
+            'general-chinese': 'chinese',
+            'ielts-preparation': 'ielts'
+          }
+
+          const type = typeMap[params.slug]
+          if (type) {
+            const { data: typeData, error: typeError } = await supabase
+              .from('program_pages')
+              .select('*')
+              .eq('type', type)
+              .single()
+
+            if (typeError) throw typeError
+            data = typeData
+          } else {
+            throw error
+          }
+        }
 
         setProgram(data)
       } catch (error: any) {
@@ -175,6 +209,30 @@ export default function ProgramPage({ params }: { params: { slug: string } }) {
           {/* Program Details Section */}
           <ProgramDetails levels={program.levels} theme={program.theme} />
 
+          {/* Schedule Section */}
+          <ProgramSchedule
+            scheduleTime={{
+              morning: program.schedule.times.morning.join(' | '),
+              afternoon: program.schedule.times.afternoon.join(' | '),
+              evening: program.schedule.times.evening.join(' | ')
+            }}
+            duration={{
+              weekday: {
+                hours: parseInt(program.schedule.duration.weekday.duration.split(':')[0]),
+                minutes: parseInt(program.schedule.duration.weekday.duration.split(':')[1])
+              },
+              weekend: {
+                hours: parseInt(program.schedule.duration.weekend.duration.split(':')[0]),
+                minutes: parseInt(program.schedule.duration.weekend.duration.split(':')[1])
+              }
+            }}
+            programType={program.type === 'chinese' ? 'chinese' : 'english'}
+            tuitionFees={program.levels.map(level => ({
+              price: parseInt(level.duration.replace(/[^0-9]/g, '')),
+              levels: [level.title]
+            }))}
+          />
+
           {/* Course Materials Section */}
           <section className="my-16">
             <h3 className="text-2xl font-bold text-center mb-8">Course Materials</h3>
@@ -201,41 +259,28 @@ export default function ProgramPage({ params }: { params: { slug: string } }) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                           />
                         </svg>
                       </div>
                     )}
                   </div>
-                  <div className="p-6">
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">{material.title}</h4>
-                    <p className="text-sm text-blue-600 mb-3">{material.level}</p>
-                    <p className="text-gray-600">{material.description}</p>
+                  <div className="p-4">
+                    <h4 className="font-semibold text-gray-900">{material.title}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{material.description}</p>
+                    <span className="inline-block mt-2 text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                      {material.level}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Schedule Section */}
-          <ProgramSchedule
-            scheduleTime={program.schedule.times}
-            programType={program.theme === 'red' ? 'chinese' : 'english'}
-            tuitionFees={[
-              { price: 170, levels: ['Foundation Level'] },
-              { price: 180, levels: ['Intermediate Level'] },
-              { price: 190, levels: ['Advanced Level'] }
-            ]}
-          />
+          {/* CTA Section */}
+          <ProgramCTA />
         </div>
       </main>
-
-      {/* CTA Section */}
-      <ProgramCTA
-        title={`Ready to Join Our ${program.name}?`}
-        description="Contact us to learn more about the program and start your learning journey."
-        theme={program.theme}
-      />
     </div>
   )
 } 
