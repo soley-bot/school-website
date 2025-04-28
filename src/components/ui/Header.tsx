@@ -9,10 +9,16 @@ import { Fragment, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 interface Program {
+  id: string
   name: string
   description: string
   slug: string
-  theme: string
+  theme: 'red' | 'blue'
+  features: Array<{
+    icon: string
+    title: string
+    description: string
+  }>
 }
 
 const navigation = [
@@ -22,37 +28,36 @@ const navigation = [
   { name: 'Contact', href: '/contact' },
 ]
 
-export function Header() {
+export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [programs, setPrograms] = useState<Program[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
   const isAdminPage = pathname.startsWith('/admin')
 
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        console.log('Fetching programs...')
         const { data, error } = await supabase
-          .from('programs')
-          .select('name, description, tag, theme')
+          .from('program_pages')
+          .select('id, name, description, slug, theme, features')
           .order('created_at', { ascending: true })
 
-        if (error) {
-          console.error('Error fetching programs:', error)
-          throw error
-        }
-        
-        const mappedPrograms = data?.map(program => ({
-          name: program.name,
-          description: program.description,
-          slug: program.tag,
-          theme: program.theme || 'blue'
+        if (error) throw error
+
+        // Parse features if they are stored as a string
+        const parsedPrograms = data?.map(program => ({
+          ...program,
+          features: typeof program.features === 'string' 
+            ? JSON.parse(program.features) 
+            : program.features || []
         })) || []
-        
-        console.log('Fetched programs:', JSON.stringify(mappedPrograms, null, 2))
-        setPrograms(mappedPrograms)
+
+        setPrograms(parsedPrograms)
       } catch (error) {
-        console.error('Error in fetchPrograms:', error)
+        console.error('Error fetching programs:', error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -133,27 +138,49 @@ export function Header() {
                     leaveTo="opacity-0 translate-y-1"
                   >
                     <Menu.Items className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-lg bg-white py-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      {programs.map((program) => (
-                        <Menu.Item key={program.slug}>
-                          {({ active }) => (
-                            <Link
-                              href={`/academics/${program.slug}`}
-                              className={`${
-                                active || isActive(`/academics/${program.slug}`)
-                                  ? 'bg-gray-50'
-                                  : ''
-                              } block px-4 py-3 hover:bg-gray-50`}
-                            >
-                              <p className="text-sm font-medium text-gray-900">
-                                {program.name}
-                              </p>
-                              <p className="mt-1 text-sm text-gray-500">
-                                {program.description}
-                              </p>
-                            </Link>
-                          )}
-                        </Menu.Item>
-                      ))}
+                      {isLoading ? (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          Loading programs...
+                        </div>
+                      ) : (
+                        programs.map((program) => (
+                          <Menu.Item key={program.id}>
+                            {({ active }) => (
+                              <Link
+                                href={`/academics/program/${program.slug}`}
+                                className={`${
+                                  active || isActive(`/academics/program/${program.slug}`)
+                                    ? 'bg-gray-50'
+                                    : ''
+                                } block px-4 py-3 hover:bg-gray-50`}
+                              >
+                                <p className="text-sm font-medium text-gray-900">
+                                  {program.name}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                  {program.description}
+                                </p>
+                                {program.features && program.features.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {program.features.slice(0, 2).map((feature, index) => (
+                                      <span
+                                        key={index}
+                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                                          program.theme === 'red'
+                                            ? 'bg-red-100 text-red-800'
+                                            : 'bg-blue-100 text-blue-800'
+                                        }`}
+                                      >
+                                        {feature.title}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </Link>
+                            )}
+                          </Menu.Item>
+                        ))
+                      )}
                       {isAdminPage && (
                         <div className="border-t mt-2 pt-2">
                           <Menu.Item>
@@ -231,21 +258,43 @@ export function Header() {
                 Academics
               </div>
               <div className="mt-2 space-y-1">
-                {programs.map((program) => (
-                  <Link
-                    key={program.slug}
-                    href={`/academics/${program.slug}`}
-                    className={`${
-                      isActive(`/academics/${program.slug}`)
-                        ? 'bg-gray-50 text-gray-900 font-medium'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    } block px-3 py-2 text-sm rounded-md`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <p className="font-medium">{program.name}</p>
-                    <p className="mt-1 text-xs text-gray-500">{program.description}</p>
-                  </Link>
-                ))}
+                {isLoading ? (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    Loading programs...
+                  </div>
+                ) : (
+                  programs.map((program) => (
+                    <Link
+                      key={program.id}
+                      href={`/academics/program/${program.slug}`}
+                      className={`${
+                        isActive(`/academics/program/${program.slug}`)
+                          ? 'bg-gray-50 text-gray-900 font-medium'
+                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                      } block px-3 py-2 text-sm rounded-md`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <p className="font-medium">{program.name}</p>
+                      <p className="mt-1 text-xs text-gray-500">{program.description}</p>
+                      {program.features && program.features.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {program.features.slice(0, 2).map((feature, index) => (
+                            <span
+                              key={index}
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                                program.theme === 'red'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}
+                            >
+                              {feature.title}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </Link>
+                  ))
+                )}
                 {isAdminPage && (
                   <Link
                     href="/admin/academics/programs/new"

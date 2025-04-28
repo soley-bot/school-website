@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/auth'
 import Image from 'next/image'
+import { toast } from 'react-hot-toast'
 
 interface Program {
   id: string
@@ -18,20 +19,69 @@ interface Program {
   created_at: string
 }
 
+// Helper function to get the correct program URL
+const getProgramUrl = (slug: string) => {
+  // Map of static program pages
+  const staticPrograms = {
+    'general-english': true,
+    'general-chinese': true,
+    'chinese-primary': true,
+    'ielts-preparation': true
+  }
+
+  // If it's a static program, use the direct route
+  if (staticPrograms[slug as keyof typeof staticPrograms]) {
+    return `/academics/${slug}`
+  }
+
+  // Otherwise, use the dynamic route
+  return `/academics/program/${slug}`
+}
+
 export default function AcademicsAdmin() {
   const router = useRouter()
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     loadPrograms()
+
+    // Subscribe to changes in program_pages table
+    const channel = supabase
+      .channel('program_pages_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'program_pages'
+        },
+        () => {
+          // Reload programs when any change occurs
+          loadPrograms()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const loadPrograms = async () => {
     try {
       const { data, error } = await supabase
         .from('program_pages')
-        .select('*')
+        .select(`
+          id,
+          name,
+          description,
+          slug,
+          theme,
+          introduction,
+          created_at
+        `)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -39,8 +89,57 @@ export default function AcademicsAdmin() {
       setPrograms(data || [])
     } catch (error) {
       console.error('Error loading programs:', error)
+      toast.error('Failed to load programs')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleEditProgram = (programId: string) => {
+    router.push(`/admin/academics/programs/${programId}`)
+  }
+
+  const handleViewProgram = (slug: string) => {
+    const url = getProgramUrl(slug)
+    // Open in new tab and ensure URL starts with origin
+    window.open(`${window.location.origin}${url}`, '_blank')
+  }
+
+  const handleDeleteProgram = async (programId: string) => {
+    if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
+      return
+    }
+
+    setIsDeletingId(programId)
+
+    try {
+      // Delete all related records first
+      const promises = [
+        supabase.from('program_features').delete().eq('program_id', programId),
+        supabase.from('program_levels').delete().eq('program_id', programId),
+        supabase.from('program_content').delete().eq('program_id', programId),
+        supabase.from('program_schedule').delete().eq('program_id', programId),
+        supabase.from('program_tuition').delete().eq('program_id', programId),
+        supabase.from('course_materials').delete().eq('program_id', programId),
+      ]
+
+      await Promise.all(promises)
+
+      // Then delete the program page
+      const { error } = await supabase
+        .from('program_pages')
+        .delete()
+        .eq('id', programId)
+
+      if (error) throw error
+
+      toast.success('Program deleted successfully')
+      setPrograms(programs.filter(p => p.id !== programId))
+    } catch (error) {
+      console.error('Error deleting program:', error)
+      toast.error('Failed to delete program')
+    } finally {
+      setIsDeletingId(null)
     }
   }
 
@@ -61,8 +160,21 @@ export default function AcademicsAdmin() {
         </div>
         <button
           onClick={() => router.push('/admin/academics/programs/new')}
-          className="px-4 py-2 text-white bg-[#2596be] rounded-md hover:bg-[#1a7290]"
+          className="inline-flex items-center px-4 py-2 text-white bg-[#2596be] rounded-md hover:bg-[#1a7290]"
         >
+          <svg
+            className="-ml-1 mr-2 h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
           Create New Program
         </button>
       </div>
@@ -75,7 +187,7 @@ export default function AcademicsAdmin() {
           >
             <div className="flex items-start p-6">
               <div className="relative w-48 h-32 flex-shrink-0">
-                {program.introduction.image ? (
+                {program.introduction?.image ? (
                   <Image
                     src={program.introduction.image}
                     alt={program.name}
@@ -117,21 +229,45 @@ export default function AcademicsAdmin() {
                   </span>
                 </div>
                 <p className="mt-2 text-gray-600 line-clamp-2">{program.description}</p>
-                <div className="mt-4 flex space-x-4">
+                <div className="mt-4 flex items-center space-x-4">
                   <button
-                    onClick={() => router.push(`/admin/academics/programs/${program.id}`)}
-                    className="text-[#2596be] hover:text-[#1a7290] text-sm font-medium"
+                    onClick={() => handleEditProgram(program.id)}
+                    className="inline-flex items-center text-[#2596be] hover:text-[#1a7290] text-sm font-medium"
                   >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
                     Edit Program
                   </button>
-                  <a
-                    href={`/academics/${program.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                  <button
+                    onClick={() => handleViewProgram(program.slug)}
+                    className="inline-flex items-center text-gray-500 hover:text-gray-700 text-sm font-medium"
                   >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
                     View Page
-                  </a>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProgram(program.id)}
+                    disabled={isDeletingId === program.id}
+                    className="inline-flex items-center text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
+                  >
+                    {isDeletingId === program.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-red-600 mr-1"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

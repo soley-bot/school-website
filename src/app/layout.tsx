@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/ui/Navigation";
+import Header from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en" className="h-full scroll-smooth">
       <body className={`${inter.className} min-h-full flex flex-col bg-white`}>
         <ErrorBoundary>
-          <Navigation />
+          <Header />
           <div className="flex-grow">
             {children}
           </div>
