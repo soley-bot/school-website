@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="600" height="120">
+  <!-- Background Circle (Icon) -->
+  <circle cx="60" cy="60" r="50" fill="#2596be"/>
+  
+  <!-- Stylized "S" for Stanford -->
+  <path d="M80 40c0-15-12-27-27-27S25 25 25 40c0 12 8 22 19 25.5-11 3.5-19 13.5-19 25.5 0 15 12 27 27 27s27-12 27-27" 
+        fill="none" 
+        stroke="white" 
+        stroke-width="9" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- School Name - Horizontal Layout -->
+  <text x="130" y="50" font-family="Arial, sans-serif" font-weight="700" font-size="28" fill="#2596be">STANFORD</text>
+  <text x="130" y="80" font-family="Arial, sans-serif" font-weight="700" font-size="18" fill="#2596be">AMERICAN SCHOOL</text>
+</svg> 

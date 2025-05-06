@@ -122,20 +122,24 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-12  h-12">
-              <Image
-                src="/images/logo.png"
-                alt="STANFORD American School"
-                fill
-                sizes="(max-width: 768px) 48px, 48px"
-                className="object-contain"
-                priority
-                quality={100}
-              />
+            <div className="relative w-12 h-12 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="48" height="48">
+                {/* Background Circle (Icon) */}
+                <circle cx="60" cy="60" r="50" fill="#2596be"/>
+                
+                {/* Stylized "S" for Stanford */}
+                <path d="M80 40c0-15-12-27-27-27S25 25 25 40c0 12 8 22 19 25.5-11 3.5-19 13.5-19 25.5 0 15 12 27 27 27s27-12 27-27" 
+                      fill="none" 
+                      stroke="white" 
+                      stroke-width="9" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"/>
+              </svg>
             </div>
-            <span className="text-sm font-medium text-gray-900">
-              STANFORD AMERICAN SCHOOL
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-[#2596be] leading-tight">STANFORD</span>
+              <span className="text-xs font-medium text-[#2596be] leading-tight">AMERICAN SCHOOL</span>
+            </div>
           </Link>
           
           <nav className="hidden md:flex space-x-8">
