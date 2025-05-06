@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { supabase } from '@/lib/auth'
+import { getClientComponentClient } from '@/lib/supabase'
 import { toast } from 'react-hot-toast'
 
 interface ImageUploaderProps {
@@ -50,6 +50,7 @@ export default function ImageUploader({
       const fileName = `${Math.random().toString(36).slice(2)}.${fileExt}`
       const filePath = `${folder}/${fileName}`
 
+      const supabase = getClientComponentClient()
       const { error: uploadError, data } = await supabase.storage
         .from('program-images')
         .upload(filePath, file)

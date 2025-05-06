@@ -1,30 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { PhotoIcon } from '@heroicons/react/24/outline'
-import { supabase } from '@/lib/supabase'
+import { getClientComponentClient } from '@/lib/supabase'
+import type { EventContent } from '@/types/content'
+import ImageWithFallback from '@/components/ui/ImageWithFallback'
 
-interface Event {
-  id: number
-  title: string
-  description: string
-  date: string
-  image_url: string | null
+interface Props {
+  events?: EventContent[]
 }
 
-export default function UpcomingEventsSection() {
-  const [events, setEvents] = useState<Event[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export default function UpcomingEventsSection({ events: initialEvents }: Props) {
+  const [events, setEvents] = useState<EventContent[]>(initialEvents || [])
+  const [isLoading, setIsLoading] = useState(!initialEvents)
 
   useEffect(() => {
-    loadEvents()
-  }, [])
+    if (!initialEvents) {
+      loadEvents()
+    }
+  }, [initialEvents])
 
   async function loadEvents() {
     try {
+      const supabase = getClientComponentClient()
       const { data, error } = await supabase
-        .from('upcoming_events')
+        .from('events')
         .select('*')
         .order('date', { ascending: true })
         .limit(6)
@@ -96,16 +96,12 @@ export default function UpcomingEventsSection() {
             <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-48">
                 {event.image_url ? (
-                  <Image
+                  <ImageWithFallback
                     src={event.image_url}
                     alt={event.title}
+                    fallbackSrc="/images/studentsplaceholder.jpg"
                     fill
                     className="object-cover"
-                    unoptimized
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/images/studentsplaceholder.jpg';
-                    }}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">

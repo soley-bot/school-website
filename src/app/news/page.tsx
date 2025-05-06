@@ -4,7 +4,7 @@ const news = [
     title: 'Annual Science Fair Winners Announced',
     date: 'March 15, 2024',
     excerpt:
-      'Congratulations to all participants in this year&apos;s Science Fair. The projects demonstrated exceptional creativity and scientific thinking.',
+      'Congratulations to all participants in this year\'s Science Fair. The projects demonstrated exceptional creativity and scientific thinking.',
     category: 'Academic',
   },
   {
@@ -12,7 +12,7 @@ const news = [
     title: 'New Sports Complex Opening Soon',
     date: 'March 10, 2024',
     excerpt:
-      'We&apos;re excited to announce that our new state-of-the-art sports complex will be opening next month.',
+      'We\'re excited to announce that our new state-of-the-art sports complex will be opening next month.',
     category: 'Facilities',
   },
   {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { supabase } from '@/lib/auth'
+import { getClientComponentClient } from '@/lib/supabase'
 import ProgramHero from '@/components/ui/ProgramHero'
 import ProgramFeatures from '@/components/ui/ProgramFeatures'
 import ProgramSchedule from '@/components/ui/ProgramSchedule'
@@ -76,6 +76,7 @@ export default function ProgramPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const fetchProgram = async () => {
       try {
+        const supabase = getClientComponentClient()
         // Convert URL slug to database slug
         const dbSlug = urlToDbSlug[params.slug] || params.slug
 
@@ -134,7 +135,7 @@ export default function ProgramPage({ params }: { params: { slug: string } }) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Program Not Found</h1>
-          <p className="text-gray-600">The program you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600">The program you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <a
             href="/academics"
             className="mt-6 inline-block text-[#2596be] hover:text-[#1a7290]"
