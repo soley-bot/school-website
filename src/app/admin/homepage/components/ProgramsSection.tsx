@@ -1,11 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import type { ProgramContent, NewProgramContent } from '@/lib/supabase'
+import { getClientComponentClient } from '@/lib/supabase'
+import type { ProgramContent } from '@/lib/supabase'
+import { Database } from '@/lib/database.types'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 import { TrashIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+
+// Add UUID generation (either import or function implementation)
+// Method 1: Import uuid package (you'd need to install it first)
+// import { v4 as uuidv4 } from 'uuid'; 
+
+// Method 2: Simple UUID generation function if you can't install packages
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Define NewProgramContent type without the id field
+type NewProgramContent = Omit<ProgramContent, 'id'>;
 
 export default function ProgramsSection() {
   const router = useRouter()
@@ -21,6 +37,7 @@ export default function ProgramsSection() {
 
   const loadPrograms = async () => {
     try {
+      const supabase = getClientComponentClient()
       const { data, error } = await supabase
         .from('programs')
         .select('*')
@@ -154,12 +171,14 @@ export default function ProgramsSection() {
     setSaveSuccess(false)
 
     try {
-      // Filter out temporary IDs
+      const supabase = getClientComponentClient()
+      // Filter out temporary IDs and ensure all entries have valid UUIDs
       const programsToSave = programs.map(program => {
         const { id, ...rest } = program
         return {
           ...rest,
-          id: id.startsWith('temp_') ? undefined : id,
+          // Generate a new UUID for temporary items instead of setting to undefined
+          id: id.startsWith('temp_') ? generateUUID() : id,
           updated_at: new Date().toISOString()
         }
       })
@@ -367,7 +386,7 @@ export default function ProgramsSection() {
                       <p className="text-gray-600 mb-4">{program.description}</p>
                       <div className="mb-6">
                         <div className="text-2xl font-bold text-[#2596be]">
-                          ${program.price}
+                          From ${program.price}
                         </div>
                         <div className="text-sm text-gray-500">per month</div>
                       </div>

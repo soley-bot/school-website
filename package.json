@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-lint",
+    "dev-with-checks": "next lint && next dev",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "type-check": "tsc --noEmit",
+    "fix-cache": "rm -rf .next/cache/webpack"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",

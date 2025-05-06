@@ -1,13 +1,8 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { getBrowserClient } from './supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Database } from './database.types'
-
-// Create a single instance of the Supabase client
-export const supabase = createBrowserClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Paths that don't need authentication
 export const PUBLIC_PATHS = ['/admin/login', '/admin/env-test']
@@ -15,16 +10,20 @@ export const PUBLIC_PATHS = ['/admin/login', '/admin/env-test']
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [supabaseClient, setSupabaseClient] = useState<SupabaseClient<Database> | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
+    const client = getBrowserClient()
+    setSupabaseClient(client)
+
     let mounted = true
 
     // Set up auth state change listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = client.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
       console.log('Auth state changed:', event, !!session)
@@ -63,7 +62,7 @@ export function useAuth() {
     // Initial auth check
     const checkAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session }, error } = await client.auth.getSession()
         
         if (error) throw error
 
@@ -100,12 +99,13 @@ export function useAuth() {
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      subscription?.unsubscribe()
     }
   }, [pathname, router])
 
   return {
     isLoading,
-    isAuthenticated
+    isAuthenticated,
+    supabase: supabaseClient
   }
 } 

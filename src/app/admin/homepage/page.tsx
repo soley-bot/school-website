@@ -5,6 +5,9 @@ import ProgramsSection from './components/ProgramsSection'
 import TermBannerSection from './components/TermBannerSection'
 import UpcomingEventsSection from './components/UpcomingEventsSection'
 import FacilitiesSection from './components/FacilitiesSection'
+import StatsSection from './components/StatsSection'
+import WhyChooseUsSection from './components/WhyChooseUsSection'
+import FooterSection from './components/FooterSection'
 
 export default function HomepageAdmin() {
   return (
@@ -42,6 +45,24 @@ export default function HomepageAdmin() {
         <div>
           <h2 className="text-lg font-medium text-gray-700 mb-4">Facilities Section</h2>
           <FacilitiesSection />
+        </div>
+
+        {/* Stats Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Stats Section</h2>
+          <StatsSection />
+        </div>
+
+        {/* Why Choose Us Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Why Choose Us Section</h2>
+          <WhyChooseUsSection />
+        </div>
+
+        {/* Footer Section */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Footer Information</h2>
+          <FooterSection />
         </div>
       </div>
     </div>

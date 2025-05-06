@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/auth'
+// Update import path for useAuth
+import { useAuth } from '@/context/AuthContext' 
 
 interface Stats {
   totalPrograms: number
@@ -13,14 +14,18 @@ export default function AdminDashboard() {
     totalPrograms: 0,
     activePrograms: 0
   })
+  const { supabase } = useAuth() // Get supabase client from CONTEXT hook
 
   useEffect(() => {
-    loadStats()
-  }, [])
+    if (supabase) {
+      loadStats()
+    }
+  }, [supabase]) 
 
   const loadStats = async () => {
+    if (!supabase) return
+    
     try {
-      // Get count of all programs
       const { count: programPagesCount } = await supabase
         .from('program_pages')
         .select('*', { count: 'exact' })

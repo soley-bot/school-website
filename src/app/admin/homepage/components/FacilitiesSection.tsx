@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getClientComponentClient, getAdminClient } from '@/lib/supabase'
 import { toast } from 'react-hot-toast'
 import Image from 'next/image'
 import { PlusIcon, TrashIcon, PencilIcon, PhotoIcon } from '@heroicons/react/24/outline'
@@ -27,6 +27,8 @@ export default function FacilitiesSection() {
 
   async function loadFacilities() {
     try {
+      const supabase = getClientComponentClient()
+      
       const { data, error } = await supabase
         .from('facilities')
         .select('*')
@@ -42,24 +44,26 @@ export default function FacilitiesSection() {
 
   async function handleImageUpload(file: File) {
     try {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         throw new Error('Please upload an image file')
       }
 
+      const supabase = getAdminClient()
+
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const fileName = `${uuidv4()}.${fileExt}`
 
-      // Upload the file directly
       const { error: uploadError, data } = await supabase.storage
         .from('facilities')
         .upload(fileName, file, {
           contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error("Error uploading image:", uploadError)
+        throw uploadError
+      }
 
-      // Get the public URL with the correct path format
       return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facilities/${fileName}`
     } catch (error) {
       console.error('Error uploading image:', error)
@@ -73,13 +77,14 @@ export default function FacilitiesSection() {
 
     setIsSaving(true)
     try {
+      const supabase = getAdminClient()
+      
       let imageUrl = editingFacility.image_url
 
       if (selectedImage) {
         imageUrl = await handleImageUpload(selectedImage)
       }
 
-      // Require an image for new facilities
       if (!imageUrl && !editingFacility.id) {
         toast.error('Please upload an image')
         setIsSaving(false)
@@ -93,21 +98,25 @@ export default function FacilitiesSection() {
       }
 
       if (editingFacility.id) {
-        // Update existing facility
         const { error } = await supabase
           .from('facilities')
           .update(facilityData)
           .eq('id', editingFacility.id)
 
-        if (error) throw error
+        if (error) {
+          console.error("Error updating facility:", error)
+          throw error
+        }
         toast.success('Facility updated successfully')
       } else {
-        // Create new facility
         const { error } = await supabase
           .from('facilities')
           .insert([facilityData])
 
-        if (error) throw error
+        if (error) {
+          console.error("Error creating facility:", error)
+          throw error
+        }
         toast.success('Facility created successfully')
       }
 
@@ -117,7 +126,7 @@ export default function FacilitiesSection() {
       loadFacilities()
     } catch (error) {
       console.error('Error saving facility:', error)
-      toast.error('Failed to save facility')
+      toast.error('Error saving facility: ' + (error instanceof Error ? error.message : String(error)))
     } finally {
       setIsSaving(false)
     }
@@ -125,10 +134,11 @@ export default function FacilitiesSection() {
 
   async function handleDelete(id: number) {
     try {
+      const supabase = getAdminClient()
+      
       const facility = facilities.find(f => f.id === id)
       if (!facility) return
 
-      // Delete the image from storage if it exists
       if (facility.image_url) {
         const fileName = facility.image_url.split('/').pop()
         if (fileName) {

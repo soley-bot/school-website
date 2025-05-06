@@ -6,7 +6,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Fragment, useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getBrowserClient } from '@/lib/supabase'
 import { Database } from '@/types/database'
 
 type ProgramPage = Database['public']['Tables']['program_pages']['Row']
@@ -51,6 +51,7 @@ export default function Header() {
       setIsLoading(true);
       try {
         console.log('Fetching programs...');
+        const supabase = getBrowserClient()
         const { data: programData, error: programError } = await supabase
           .from('program_pages')
           .select('id, name, slug, type')
@@ -126,6 +127,7 @@ export default function Header() {
                 src="/images/logo.png"
                 alt="STANFORD American School"
                 fill
+                sizes="(max-width: 768px) 48px, 48px"
                 className="object-contain"
                 priority
                 quality={100}

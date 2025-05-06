@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/auth'
 import { toast } from 'react-hot-toast'
-import { v4 as uuidv4 } from 'uuid'
 import ImageUploader from '@/components/ui/ImageUploader'
 import { exampleProgramLevel, exampleProgramFeature, exampleCourseMaterial, programIcons } from '@/lib/programExamples'
 
@@ -99,7 +97,6 @@ export default function NewProgramPage() {
     name: '',
     description: '',
     theme: 'blue' as 'red' | 'blue',
-    slug: '',
     introduction: {
       text: '',
       image: '',
@@ -126,6 +123,7 @@ export default function NewProgramPage() {
     levels: [] as ProgramLevel[],
     features: [] as ProgramFeature[],
     course_materials: [] as CourseMaterial[],
+    type: ''
   })
   const [isInitializing, setIsInitializing] = useState(false);
 
@@ -194,110 +192,46 @@ export default function NewProgramPage() {
     setIsSubmitting(true)
 
     try {
-      // Validate required fields
+      // Basic client-side validation (can be enhanced)
       if (!formData.name.trim()) throw new Error('Program name is required')
       if (!formData.description.trim()) throw new Error('Description is required')
       if (!formData.introduction.text.trim()) throw new Error('Introduction text is required')
       if (formData.levels.length === 0) throw new Error('At least one level is required')
       if (formData.features.length === 0) throw new Error('At least one feature is required')
+      
+      // Prepare the data payload for the API
+      // We might need to adjust this structure depending on what the API expects
+      // For now, sending the whole formData
+      const programData = {
+        ...formData,
+        // Add slug generation if needed, or let backend handle it
+        slug: formData.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') 
+      };
 
-      // Generate slug from name
-      const slug = formData.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
+      // Send data to the API endpoint
+      const response = await fetch('/api/programs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(programData),
+      });
 
-      const programId = uuidv4()
-
-      // Create the program page
-      const { error: programError } = await supabase
-        .from('program_pages')
-        .insert([{
-          id: programId,
-          ...formData,
-          slug,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }])
-
-      if (programError) throw programError
-
-      // Create related records
-      const promises = []
-
-      // Insert program content
-      promises.push(
-        supabase
-          .from('program_content')
-          .insert([{
-            program_id: programId,
-            section: 'introduction',
-            content: formData.introduction.text
-          }])
-      )
-
-      // Insert program features
-      if (formData.features.length > 0) {
-        promises.push(
-          supabase
-            .from('program_features')
-            .insert(
-              formData.features.map((feature, index) => ({
-                program_id: programId,
-                ...feature,
-                sort_order: index
-              }))
-            )
-        )
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API Error: ${response.statusText}`);
       }
 
-      // Insert program levels
-      if (formData.levels.length > 0) {
-        promises.push(
-          supabase
-            .from('program_levels')
-            .insert(
-              formData.levels.map((level, index) => ({
-                program_id: programId,
-                ...level,
-                sort_order: index
-              }))
-            )
-        )
-      }
+      const createdProgram = await response.json(); 
+      
+      // Handle successful creation
+      toast.success('Program created successfully')
+      // Optionally use createdProgram data if needed
+      router.push('/admin/academics') 
 
-      // Insert course materials
-      if (formData.course_materials.length > 0) {
-        promises.push(
-          supabase
-            .from('course_materials')
-            .insert(
-              formData.course_materials.map((material, index) => ({
-                program_id: programId,
-                ...material,
-                sort_order: index
-              }))
-            )
-        )
-      }
-
-      // Insert schedule
-      if (formData.schedule) {
-        promises.push(
-          supabase
-            .from('program_schedule')
-            .insert([{
-              program_id: programId,
-              ...formData.schedule
-            }])
-        )
-      }
-
-      // Wait for all insertions to complete
-      await Promise.all(promises)
-
-      toast.success('Program page created successfully')
-      router.push('/admin/academics')
     } catch (error: any) {
       console.error('Error creating program:', error)
       toast.error(error.message || 'Failed to create program')
@@ -306,6 +240,8 @@ export default function NewProgramPage() {
     }
   }
 
+  // Temporarily comment out initializeTestData as it uses direct supabase calls
+  /*
   const initializeTestData = async () => {
     setIsInitializing(true);
     try {
@@ -350,6 +286,7 @@ export default function NewProgramPage() {
       setIsInitializing(false);
     }
   };
+  */
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -498,7 +435,7 @@ export default function NewProgramPage() {
           {formData.levels.length === 0 && (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
               <h3 className="text-sm font-medium text-gray-900">No levels added yet</h3>
-              <p className="mt-1 text-sm text-gray-500">Click "Add Level" to create your first program level</p>
+              <p className="mt-1 text-sm text-gray-500">Click &quot;Add Level&quot; to create your first program level</p>
               <div className="mt-4">
                 <button
                   type="button"
@@ -632,7 +569,7 @@ export default function NewProgramPage() {
           {formData.features.length === 0 && (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
               <h3 className="text-sm font-medium text-gray-900">No features added yet</h3>
-              <p className="mt-1 text-sm text-gray-500">Click "Add Feature" to highlight program benefits</p>
+              <p className="mt-1 text-sm text-gray-500">Click &quot;Add Feature&quot; to highlight program benefits</p>
               <div className="mt-4">
                 <button
                   type="button"
@@ -725,7 +662,7 @@ export default function NewProgramPage() {
           {formData.course_materials.length === 0 && (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
               <h3 className="text-sm font-medium text-gray-900">No materials added yet</h3>
-              <p className="mt-1 text-sm text-gray-500">Click "Add Material" to showcase course resources</p>
+              <p className="mt-1 text-sm text-gray-500">Click &quot;Add Material&quot; to showcase course resources</p>
               <div className="mt-4">
                 <button
                   type="button"
@@ -840,6 +777,8 @@ export default function NewProgramPage() {
         </div>
       </form>
 
+      {/* Temporarily comment out the button that calls initializeTestData */}
+      {/* 
       <div className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Initialize Test Data</h2>
         <button
@@ -857,6 +796,7 @@ export default function NewProgramPage() {
           )}
         </button>
       </div>
+      */}
     </div>
   )
 } 

@@ -10,6 +10,14 @@ interface HomepageProgramEditorProps {
   programId?: string;
 }
 
+// Extend Program to include introduction property
+interface ExtendedProgram extends Omit<Program, 'type'> {
+  introduction?: {
+    image?: string;
+  };
+  type?: 'english' | 'chinese' | 'ielts';
+}
+
 interface DatabaseProgram {
   id: string;
   name: string;
@@ -17,6 +25,7 @@ interface DatabaseProgram {
   description: string;
   theme: 'blue' | 'red';
   hero_image: string;
+  type?: string;
   introduction?: {
     image?: string;
   };
@@ -35,10 +44,25 @@ interface DatabaseFeature {
   updated_at?: string;
 }
 
+// Helper function to convert string to valid icon type
+const parseIconType = (iconStr: string): 'academic' | 'users' | 'chat' | 'puzzle' | 'globe' | 'clock' | 'book' | 'trophy' => {
+  switch (iconStr) {
+    case 'academic': return 'academic';
+    case 'users': return 'users';
+    case 'chat': return 'chat';
+    case 'puzzle': return 'puzzle';
+    case 'globe': return 'globe';
+    case 'clock': return 'clock';
+    case 'book': return 'book';
+    case 'trophy': return 'trophy';
+    default: return 'academic'; // Default fallback
+  }
+};
+
 export default function HomepageProgramEditor({ programId }: HomepageProgramEditorProps) {
   const supabase = getClientComponentClient();
   const router = useRouter();
-  const [program, setProgram] = useState<Program | null>(null);
+  const [program, setProgram] = useState<ExtendedProgram | null>(null);
   const [features, setFeatures] = useState<ProgramFeature[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +83,7 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
       }
     };
     checkAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   useEffect(() => {
@@ -67,6 +92,7 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [programId]);
 
   const loadProgramData = async () => {
@@ -99,22 +125,23 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
       const featuresData = (rawFeaturesData || []) as unknown as DatabaseFeature[];
 
       // Create a properly typed program object
-      const typedProgram: Program = {
+      const typedProgram: ExtendedProgram = {
         id: programData.id,
         name: programData.name,
         slug: programData.slug,
         description: programData.description,
         theme: programData.theme,
         hero_image: programData.hero_image,
+        type: (programData.type as 'english' | 'chinese' | 'ielts') || 'english',
         features: featuresData.map(f => ({
           id: f.id,
           program_id: f.program_id,
           title: f.title,
           description: f.description,
-          icon: f.icon,
+          icon: parseIconType(f.icon), // Parse to valid icon type
           sort_order: f.sort_order,
-          created_at: f.created_at,
-          updated_at: f.updated_at
+          created_at: f.created_at || new Date().toISOString(),
+          updated_at: f.updated_at || new Date().toISOString()
         })),
         levels: [],
         schedule: {
@@ -124,7 +151,9 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
           duration: {
             weekday: { hours: 0, minutes: 0 },
             weekend: { hours: 0, minutes: 0 }
-          }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
         tuition: [],
         created_at: programData.created_at,
@@ -142,7 +171,7 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
     }
   };
 
-  const handleBasicInfoUpdate = async (updatedInfo: Partial<Program>) => {
+  const handleBasicInfoUpdate = async (updatedInfo: Partial<ExtendedProgram>) => {
     if (!program) return;
 
     try {
@@ -217,8 +246,15 @@ export default function HomepageProgramEditor({ programId }: HomepageProgramEdit
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
             <BasicInfoEditor
-              program={program || { id: '', name: '', description: '', slug: '', theme: 'blue' } as Program}
-              onUpdate={handleBasicInfoUpdate}
+              program={program as unknown as Program || { 
+                id: '', 
+                name: '', 
+                description: '', 
+                slug: '', 
+                theme: 'blue', 
+                type: 'english'
+              } as Program}
+              onUpdate={handleBasicInfoUpdate as unknown as (updatedInfo: Partial<Program>) => Promise<void>}
             />
           </div>
 

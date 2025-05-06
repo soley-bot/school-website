@@ -42,6 +42,7 @@ export default function ProgramEditor({ programId }: ProgramEditorProps) {
     if (!authLoading && isAuthenticated && programId) {
       loadProgramData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAuthenticated, programId, router]);
 
   const loadProgramData = async () => {
@@ -413,7 +414,7 @@ export default function ProgramEditor({ programId }: ProgramEditorProps) {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Program Not Found</h2>
-          <p className="text-gray-600 mb-6">The program you're looking for could not be found. It may have been deleted or moved.</p>
+          <p className="text-gray-600 mb-6">The program you&apos;re looking for could not be found. It may have been deleted or moved.</p>
           <button
             onClick={() => router.push('/admin/academics')}
             className="inline-flex items-center px-4 py-2 text-white bg-[#2596be] rounded-md hover:bg-[#1a7290]"

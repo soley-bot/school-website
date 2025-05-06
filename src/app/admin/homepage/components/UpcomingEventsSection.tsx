@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getClientComponentClient, getAdminClient } from '@/lib/supabase'
 import { toast } from 'react-hot-toast'
 import Image from 'next/image'
 import { PlusIcon, TrashIcon, PencilIcon, PhotoIcon } from '@heroicons/react/24/outline'
@@ -28,6 +28,8 @@ export default function UpcomingEventsSection() {
 
   async function loadEvents() {
     try {
+      const supabase = getClientComponentClient()
+      
       const { data, error } = await supabase
         .from('upcoming_events')
         .select('*')
@@ -43,24 +45,26 @@ export default function UpcomingEventsSection() {
 
   async function handleImageUpload(file: File) {
     try {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         throw new Error('Please upload an image file')
       }
+      
+      const supabase = getAdminClient()
 
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const fileName = `${uuidv4()}.${fileExt}`
 
-      // Upload the file directly
       const { error: uploadError, data } = await supabase.storage
         .from('events')
         .upload(fileName, file, {
           contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error("Error uploading image:", uploadError)
+        throw uploadError
+      }
 
-      // Get the public URL with the correct path format
       return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/events/${fileName}`
     } catch (error) {
       console.error('Error uploading image:', error)
@@ -74,6 +78,8 @@ export default function UpcomingEventsSection() {
 
     setIsSaving(true)
     try {
+      const supabase = getAdminClient()
+      
       let imageUrl = editingEvent.image_url
 
       if (selectedImage) {
@@ -88,21 +94,25 @@ export default function UpcomingEventsSection() {
       }
 
       if (editingEvent.id) {
-        // Update existing event
         const { error } = await supabase
           .from('upcoming_events')
           .update(eventData)
           .eq('id', editingEvent.id)
 
-        if (error) throw error
+        if (error) {
+          console.error("Error updating event:", error)
+          throw error
+        }
         toast.success('Event updated successfully')
       } else {
-        // Create new event
         const { error } = await supabase
           .from('upcoming_events')
           .insert([eventData])
 
-        if (error) throw error
+        if (error) {
+          console.error("Error creating event:", error)
+          throw error
+        }
         toast.success('Event created successfully')
       }
 
@@ -112,7 +122,7 @@ export default function UpcomingEventsSection() {
       loadEvents()
     } catch (error) {
       console.error('Error saving event:', error)
-      toast.error('Failed to save event')
+      toast.error('Error saving event: ' + (error instanceof Error ? error.message : String(error)))
     } finally {
       setIsSaving(false)
     }
@@ -120,10 +130,11 @@ export default function UpcomingEventsSection() {
 
   async function handleDelete(id: number) {
     try {
+      const supabase = getAdminClient()
+      
       const event = events.find(e => e.id === id)
       if (!event) return
 
-      // Delete the image from storage if it exists
       if (event.image_url) {
         const fileName = event.image_url.split('/').pop()
         if (fileName) {

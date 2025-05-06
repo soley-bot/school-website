@@ -15,7 +15,8 @@ import {
 } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { supabase, useAuth, PUBLIC_PATHS } from '@/lib/auth'
+import { useAuth, AuthProvider } from '@/context/AuthContext'
+import { PUBLIC_PATHS } from '@/lib/auth'
 import { toast } from 'react-hot-toast'
 
 const navigation = [
@@ -24,15 +25,11 @@ const navigation = [
   { name: 'Academics', href: '/admin/academics', icon: AcademicCapIcon },
 ]
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-  const { isLoading, isAuthenticated } = useAuth()
+  const { isLoading, isAuthenticated, supabase } = useAuth()
 
   const navigateTo = useCallback((path: string) => {
     if (path === pathname) return
@@ -40,22 +37,17 @@ export default function AdminLayout({
   }, [router, pathname])
 
   const handleSignOut = async () => {
+    if (!supabase) return
+    
     try {
       await supabase.auth.signOut()
-      // Redirect will be handled by auth hook
     } catch (error) {
       console.error('Error signing out:', error)
       toast.error('Error signing out')
     }
   }
 
-  // If it's a public path, render without the admin layout
-  if (PUBLIC_PATHS.includes(pathname)) {
-    return children
-  }
-
-  // Show loading state
-  if (isLoading) {
+  if (isLoading || !supabase) { 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2596be]"></div>
@@ -63,9 +55,7 @@ export default function AdminLayout({
     )
   }
 
-  // If not authenticated and not on a public path, don't render anything
-  // This prevents flash of content before redirect
-  if (!isAuthenticated && !PUBLIC_PATHS.includes(pathname)) {
+  if (!isAuthenticated) {
     return null
   }
 
@@ -90,6 +80,7 @@ export default function AdminLayout({
                     alt="Logo"
                     fill
                     className="object-contain"
+                    sizes="10rem"
                   />
                 </div>
               ) : (
@@ -99,6 +90,7 @@ export default function AdminLayout({
                     alt="Logo"
                     fill
                     className="object-contain"
+                    sizes="2rem"
                   />
                 </div>
               )}
@@ -152,6 +144,7 @@ export default function AdminLayout({
                 "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
               )}
               title={!isSidebarOpen ? "Sign Out" : undefined}
+              disabled={!supabase}
             >
               <ArrowLeftOnRectangleIcon
                 className={cn(
@@ -177,5 +170,19 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
+  )
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  return (
+    <AuthProvider>
+      {PUBLIC_PATHS.includes(pathname) ? (
+        children
+      ) : (
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      )}
+    </AuthProvider>
   )
 } 

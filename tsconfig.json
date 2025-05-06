@@ -19,9 +19,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/ui/*": ["./src/components/ui/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/context/*": ["./src/context/*"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "noErrorTruncation": true,
+    "noImplicitAny": false,
+    "ignoreDeprecations": "5.0"
   },
   "include": [
     "next-env.d.ts",

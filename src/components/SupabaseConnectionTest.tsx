@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { getBrowserClient } from '@/lib/supabase'
 
 export default function SupabaseConnectionTest() {
   const [status, setStatus] = useState<{
@@ -40,10 +40,7 @@ export default function SupabaseConnectionTest() {
         }
 
         // Test Supabase connection
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
+        const supabase = getBrowserClient()
 
         // Test authentication
         const { data: { session }, error: authError } = await supabase.auth.getSession()

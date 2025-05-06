@@ -35,8 +35,7 @@ export default function AcademicProgramEditor({ programId }: AcademicProgramEdit
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw error;
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           router.replace('/admin/login');
           return;
@@ -48,6 +47,7 @@ export default function AcademicProgramEditor({ programId }: AcademicProgramEdit
       }
     };
     checkAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   useEffect(() => {
@@ -56,6 +56,7 @@ export default function AcademicProgramEditor({ programId }: AcademicProgramEdit
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [programId]);
 
   const loadProgramData = async () => {

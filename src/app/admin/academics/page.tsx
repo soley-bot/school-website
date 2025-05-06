@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/auth'
+import { useAuth } from '@/context/AuthContext'
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface Program {
   id: string
@@ -37,12 +38,16 @@ export default function AcademicsAdmin() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
+  const { supabase } = useAuth()
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null)
 
   useEffect(() => {
+    if (!supabase) return
+
     loadPrograms()
 
     // Subscribe to changes in program_pages table
-    const channel = supabase
+    const newChannel = supabase
       .channel('program_pages_changes')
       .on(
         'postgres_changes',
@@ -57,13 +62,26 @@ export default function AcademicsAdmin() {
         }
       )
       .subscribe()
+    
+    setChannel(newChannel)
 
     return () => {
-      supabase.removeChannel(channel)
+      if (supabase && newChannel) {
+         supabase.removeChannel(newChannel)
+           .then(status => console.log('Unsubscribed from channel:', status))
+           .catch(error => console.error('Error unsubscribing:', error));
+      } else if (channel) {
+        supabase?.removeChannel(channel)
+          .then(status => console.log('Unsubscribed from channel (fallback):', status))
+          .catch(error => console.error('Error unsubscribing (fallback):', error));
+      }
     }
-  }, [])
+  }, [supabase])
 
   const loadPrograms = async () => {
+    if (!supabase) return
+    
+    setIsLoading(true)
     try {
       console.log('Loading programs...')
       const { data, error } = await supabase
@@ -103,6 +121,8 @@ export default function AcademicsAdmin() {
   }
 
   const handleDeleteProgram = async (programId: string) => {
+    if (!supabase) return
+    
     if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
       return
     }
@@ -131,7 +151,6 @@ export default function AcademicsAdmin() {
       if (error) throw error
 
       toast.success('Program deleted successfully')
-      setPrograms(programs.filter(p => p.id !== programId))
     } catch (error) {
       console.error('Error deleting program:', error)
       toast.error('Failed to delete program')
@@ -140,7 +159,7 @@ export default function AcademicsAdmin() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !supabase) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2596be]"></div>
@@ -190,6 +209,7 @@ export default function AcademicsAdmin() {
                     alt={program.name}
                     fill
                     className="object-cover rounded-md"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">

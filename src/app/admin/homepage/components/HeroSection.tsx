@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase'
-import type { HeroContent } from '@/lib/supabase'
+import { getBrowserClient } from '@/lib/supabase'
+import type { HeroContent } from '@/types/content'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
+
+const DEFAULT_IMAGE = '/images/classroom.jpg'
 
 export default function HeroSection() {
   const router = useRouter()
@@ -20,67 +22,97 @@ export default function HeroSection() {
     primary_button_link: '#programs',
     secondary_button_text: 'Free Trial Class',
     secondary_button_link: '#',
-    image_url: '/images/classroom.jpg',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    image_url: DEFAULT_IMAGE,
+    created_at: new Date().toISOString()
   })
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState(heroContent.image_url)
+  const [previewUrl, setPreviewUrl] = useState(DEFAULT_IMAGE)
+  const [imageError, setImageError] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  useEffect(() => {
-    loadHeroContent()
-  }, [])
+  const normalizeImageUrl = (url: string): string => {
+    if (!url) return DEFAULT_IMAGE
+    if (url.startsWith('blob:')) return url // Blob URL for preview
+    if (url.startsWith('https://saxtzxbapytdpgmmpiwu.supabase.co')) {
+      // Validate Supabase URL format
+      const urlParts = url.split('/')
+      const fileName = urlParts[urlParts.length - 1]
+      if (!fileName || fileName === '') return DEFAULT_IMAGE
+      return url
+    }
+    return DEFAULT_IMAGE
+  }
 
   const loadHeroContent = async () => {
     try {
+      console.log('Loading hero content...')
+      const supabase = getBrowserClient()
       const { data, error } = await supabase
         .from('hero_content')
-        .select('*')
+        .select()
         .single()
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No content exists yet, create default content
+          // No content exists, create default content
+          console.log('No existing content found, creating default...')
           const newId = uuidv4()
+          const defaultContent = {
+            id: newId,
+            tag: 'Classes Enrolling Now',
+            title: 'Master Languages with Confidence',
+            description: 'Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.',
+            primary_button_text: 'Explore Courses',
+            primary_button_link: '#programs',
+            secondary_button_text: 'Free Trial Class',
+            secondary_button_link: '#',
+            image_url: DEFAULT_IMAGE,
+            created_at: new Date().toISOString()
+          }
+
           const { data: newData, error: insertError } = await supabase
             .from('hero_content')
-            .upsert({
-              id: newId,
-              tag: 'Classes Enrolling Now',
-              title: 'Master Languages with Confidence',
-              description: 'Join our expert-led English and Chinese programs designed to help you achieve fluency faster. Learn from native speakers in a supportive environment.',
-              primary_button_text: 'Explore Courses',
-              primary_button_link: '#programs',
-              secondary_button_text: 'Free Trial Class',
-              secondary_button_link: '#',
-              image_url: '/images/classroom.jpg',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
+            .insert([defaultContent])
             .select()
             .single()
 
-          if (insertError) throw insertError
-          if (newData) {
-            setHeroContent(newData)
-            setPreviewUrl(newData.image_url)
+          if (insertError) {
+            console.error('Error inserting default content:', insertError)
+            throw insertError
           }
+
+          if (!newData) {
+            throw new Error('No data returned after creating default content')
+          }
+
+          console.log('Default content created successfully:', newData)
+          setHeroContent(newData)
+          setPreviewUrl(normalizeImageUrl(newData.image_url))
+          setImageError(false)
         } else {
+          console.error('Error loading content:', error)
           throw error
         }
       } else if (data) {
+        console.log('Existing content loaded:', data)
         setHeroContent(data)
-        setPreviewUrl(data.image_url)
+        setPreviewUrl(normalizeImageUrl(data.image_url))
+        setImageError(false)
       }
     } catch (error) {
-      console.error('Error loading hero content:', error)
+      console.error('Error in loadHeroContent:', error)
       setError(error instanceof Error ? error.message : 'Failed to load content. Please try again.')
+      setPreviewUrl(DEFAULT_IMAGE)
     }
   }
+
+  useEffect(() => {
+    loadHeroContent()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -89,9 +121,22 @@ export default function HeroSection() {
         setError('File size must be less than 10MB')
         return
       }
+      
+      // Cleanup previous preview URL if it's a blob
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl)
+      }
+      
       setSelectedImage(file)
       setPreviewUrl(URL.createObjectURL(file))
+      setImageError(false) // Reset image error state when new image is selected
     }
+  }
+
+  const handleImageError = () => {
+    console.log('Image failed to load, falling back to default')
+    setImageError(true)
+    setPreviewUrl(DEFAULT_IMAGE)
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -101,16 +146,33 @@ export default function HeroSection() {
     setSaveSuccess(false)
 
     try {
+      const supabase = getBrowserClient()
       let newImageUrl = heroContent.image_url
 
       // Upload new image if selected
       if (selectedImage) {
+        // Delete the old image if it's from Supabase storage
+        if (heroContent.image_url.includes('supabase.co')) {
+          const oldImagePath = heroContent.image_url.split('/').pop()
+          if (oldImagePath) {
+            const { error: deleteError } = await supabase.storage
+              .from('hero-images')
+              .remove([oldImagePath])
+            
+            if (deleteError) {
+              console.warn('Failed to delete old image:', deleteError)
+            }
+          }
+        }
+
+        // Generate a unique filename with timestamp and random string
         const fileExt = selectedImage.name.split('.').pop()
-        const fileName = `${Date.now()}.${fileExt}`
+        const randomString = Math.random().toString(36).substring(2, 15)
+        const fileName = `hero-${Date.now()}-${randomString}.${fileExt}`
 
-        console.log('Uploading image to hero-images bucket:', fileName)
+        console.log('Uploading new image to hero-images bucket:', fileName)
 
-        // Upload the image to the hero-images bucket
+        // Upload the new image
         const { error: uploadError } = await supabase.storage
           .from('hero-images')
           .upload(fileName, selectedImage, {
@@ -140,8 +202,7 @@ export default function HeroSection() {
         primary_button_link: heroContent.primary_button_link,
         secondary_button_text: heroContent.secondary_button_text,
         secondary_button_link: heroContent.secondary_button_link,
-        image_url: newImageUrl,
-        updated_at: new Date().toISOString()
+        image_url: newImageUrl
       }
 
       console.log('Saving hero content with data:', heroData)
@@ -159,35 +220,71 @@ export default function HeroSection() {
       let result
       if (existingContent) {
         // Update existing record
+        console.log('Updating existing record with ID:', existingContent.id)
+        
+        const { error: updateError } = await supabase
+          .from('hero_content')
+          .update({
+            ...heroData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingContent.id)
+
+        if (updateError) {
+          console.error('Update error:', updateError)
+          throw updateError
+        }
+
         result = await supabase
           .from('hero_content')
-          .update(heroData)
-          .eq('id', existingContent.id)
           .select()
+          .eq('id', existingContent.id)
           .single()
       } else {
         // Insert new record with a UUID
         const newId = uuidv4()
         result = await supabase
           .from('hero_content')
-          .insert([{ id: newId, ...heroData }])
+          .insert([{
+            id: newId,
+            ...heroData,
+            created_at: new Date().toISOString()
+          }])
           .select()
           .single()
       }
 
-      if (result.error) throw result.error
+      if (result.error) {
+        throw result.error
+      }
+
+      if (!result.data) {
+        throw new Error('No data returned after save')
+      }
 
       setHeroContent(result.data)
+      setSelectedImage(null) // Clear the selected image after successful upload
       setSaveSuccess(true)
-      toast.success('Hero section updated successfully')
+      toast.success('Hero section updated successfully!')
+      router.refresh()
     } catch (error) {
-      console.error('Error saving hero content:', error)
+      console.error('Error in handleSave:', error)
       setError(error instanceof Error ? error.message : 'Failed to save content. Please try again.')
-      toast.error('Failed to save changes')
+      toast.error('Failed to save hero section')
     } finally {
       setIsSaving(false)
     }
   }
+
+  // Add cleanup function for image preview URL
+  useEffect(() => {
+    return () => {
+      // Cleanup any object URLs when component unmounts
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
 
   return (
     <form onSubmit={handleSave} className="space-y-8">
@@ -309,12 +406,13 @@ export default function HeroSection() {
                 {previewUrl ? (
                   <div className="relative w-full aspect-[3/2] mb-4">
                     <Image
-                      src={previewUrl}
+                      src={imageError ? DEFAULT_IMAGE : normalizeImageUrl(previewUrl)}
                       alt="Hero image preview"
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover rounded-md"
                       priority
+                      onError={handleImageError}
                     />
                   </div>
                 ) : (
@@ -369,11 +467,10 @@ export default function HeroSection() {
                 primary_button_link: '#programs',
                 secondary_button_text: 'Free Trial Class',
                 secondary_button_link: '#',
-                image_url: '/images/classroom.jpg',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                image_url: DEFAULT_IMAGE,
+                created_at: new Date().toISOString()
               })
-              setPreviewUrl('/images/classroom.jpg')
+              setPreviewUrl(DEFAULT_IMAGE)
               setSaveSuccess(false)
             }}
             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"

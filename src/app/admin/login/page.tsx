@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase, useAuth } from '@/lib/auth'
+// Update import path for useAuth
+import { useAuth } from '@/context/AuthContext'
 import { toast } from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { isLoading } = useAuth()
+  // Get isLoading AND the supabase client instance from the CONTEXT hook
+  const { isLoading, supabase } = useAuth()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    if (isSubmitting) return
+    if (isSubmitting || !supabase) return
     
     setIsSubmitting(true)
 
@@ -26,7 +28,6 @@ export default function LoginPage() {
 
       if (data.session) {
         toast.success('Logged in successfully')
-        // The redirect will be handled by the auth hook
       }
     } catch (error: any) {
       console.error('Error logging in:', error)
@@ -35,7 +36,7 @@ export default function LoginPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !supabase) { 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2596be]"></div>
@@ -92,7 +93,7 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !supabase} 
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#2596be] hover:bg-[#1a7290] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2596be] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (

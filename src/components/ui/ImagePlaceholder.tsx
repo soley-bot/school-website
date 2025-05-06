@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 interface ImagePlaceholderProps {
   title: string
@@ -10,7 +11,7 @@ interface ImagePlaceholderProps {
   customImage?: string
 }
 
-export function ImagePlaceholder({ 
+export default function ImagePlaceholder({ 
   title, 
   subtitle, 
   aspectRatio = 'video',
@@ -32,7 +33,7 @@ export function ImagePlaceholder({
   const imageSrc = customImage || defaultImages[aspectRatio]
 
   return (
-    <div className={`relative ${aspectRatioClasses[aspectRatio]} ${className} overflow-hidden rounded-xl bg-white`}>
+    <div className={cn(`relative ${aspectRatioClasses[aspectRatio]} overflow-hidden rounded-xl bg-white`, className)}>
       <div className="absolute inset-0">
         <Image
           src={imageSrc}

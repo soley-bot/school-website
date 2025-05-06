@@ -1,24 +1,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { supabase } from '@/lib/supabase'
+import type { FacilityContent } from '@/types/content'
+import ImageWithFallback from '@/components/ui/ImageWithFallback'
 
-interface Facility {
-  id: number
-  title: string
-  description: string
-  image_url: string | null
+interface Props {
+  facilities?: FacilityContent[]
 }
 
-export default function FacilitiesSection() {
-  const [facilities, setFacilities] = useState<Facility[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export default function FacilitiesSection({ facilities: initialFacilities }: Props) {
+  const [facilities, setFacilities] = useState<FacilityContent[]>(initialFacilities || [])
+  const [isLoading, setIsLoading] = useState(!initialFacilities)
 
   useEffect(() => {
-    loadFacilities()
-  }, [])
+    if (!initialFacilities) {
+      loadFacilities()
+    }
+  }, [initialFacilities])
 
   async function loadFacilities() {
     try {
@@ -67,12 +67,12 @@ export default function FacilitiesSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
-                <Image
-                  className="w-full h-64 object-cover rounded-lg"
+                <ImageWithFallback
                   src="/images/classroom.jpg"
                   alt="Language Lab"
-                  width={400}
-                  height={400}
+                  fallbackSrc="/images/classroom.jpg"
+                  fill
+                  className="object-cover"
                 />
               </div>
               <div className="p-6">
@@ -83,12 +83,14 @@ export default function FacilitiesSection() {
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
-                <Image
-                  className="w-full h-64 object-cover rounded-lg"
+                <ImageWithFallback
                   src="/images/chinese-class.jpg"
                   alt="Cultural Space"
-                  width={400}
-                  height={400}
+                  fallbackSrc="/images/classroom.jpg"
+                  fill
+                  className="object-cover"
+                  priority={facilities.some(f => f.image_url === '/images/chinese-class.jpg')}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
               <div className="p-6">
@@ -99,12 +101,12 @@ export default function FacilitiesSection() {
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-64">
-                <Image
-                  className="w-full h-64 object-cover rounded-lg"
+                <ImageWithFallback
                   src="/images/chinese-kids.jpg"
                   alt="Resource Center"
-                  width={400}
-                  height={400}
+                  fallbackSrc="/images/classroom.jpg"
+                  fill
+                  className="object-cover"
                 />
               </div>
               <div className="p-6">
@@ -124,28 +126,41 @@ export default function FacilitiesSection() {
         <h2 className="text-4xl font-bold text-center mb-12">Our Facilities</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {facilities.map((facility) => (
-            <div key={facility.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="relative h-64">
-                {facility.image_url ? (
-                  <Image
+            <div 
+              key={facility.id} 
+              className="bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300"
+            >
+              <div className="relative h-60 w-full">
+                {typeof facility.image_url === 'string' ? (
+                  <ImageWithFallback
                     src={facility.image_url}
-                    alt={facility.title}
+                    fallbackSrc="/images/placeholder.png"
+                    alt={facility.title || 'Facility image'}
                     fill
                     className="object-cover"
-                    unoptimized
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/images/schoolbuildingplaceholder.jpg';
-                    }}
+                    priority={facility.image_url === '/images/chinese-class.jpg'}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                    <PhotoIcon className="h-12 w-12 text-gray-400" />
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <svg
+                      className="w-12 h-12 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
                   </div>
                 )}
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-3">{facility.title}</h3>
+                <h3 className="text-xl font-semibold mb-2">{facility.title}</h3>
                 <p className="text-gray-600 whitespace-pre-line">{facility.description}</p>
               </div>
             </div>
