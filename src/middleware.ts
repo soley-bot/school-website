@@ -4,6 +4,26 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Paths that don't need authentication
 const PUBLIC_PATHS = ['/admin/login', '/admin/env-test']
 
+// Rate limiting configuration
+const RATE_LIMIT_MAX_REQUESTS = 5
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
+const rateLimit = new Map<string, { count: number; resetTime: number }>()
+
+// Session configuration
+const SESSION_TIMEOUT_MINUTES = 60 // 1 hour
+const MAX_CONCURRENT_SESSIONS = 3
+const activeSessions = new Map<string, Set<string>>() // userId -> Set of sessionIds
+
+// Clean up expired entries every hour
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, value] of rateLimit.entries()) {
+    if (now > value.resetTime) {
+      rateLimit.delete(key)
+    }
+  }
+}, 60 * 60 * 1000)
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   console.log('Middleware executing for path:', pathname)
@@ -34,7 +54,8 @@ export async function middleware(request: NextRequest) {
             path: '/',
             secure: request.url.startsWith('https://'),
             sameSite: 'lax',
-            httpOnly: true
+            httpOnly: true,
+            maxAge: SESSION_TIMEOUT_MINUTES * 60 // Convert minutes to seconds
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -46,12 +67,34 @@ export async function middleware(request: NextRequest) {
             expires: new Date(0),
             maxAge: 0
           })
-        },
+        }
       }
     }
   )
 
   try {
+    // Apply rate limiting for login attempts
+    if (pathname === '/admin/login' && request.method === 'POST') {
+      const ip = request.ip || 'unknown'
+      const now = Date.now()
+      const rateLimitInfo = rateLimit.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW_MS }
+
+      if (now > rateLimitInfo.resetTime) {
+        rateLimitInfo.count = 0
+        rateLimitInfo.resetTime = now + RATE_LIMIT_WINDOW_MS
+      }
+
+      rateLimitInfo.count++
+      rateLimit.set(ip, rateLimitInfo)
+
+      if (rateLimitInfo.count > RATE_LIMIT_MAX_REQUESTS) {
+        return NextResponse.json(
+          { error: 'Too many login attempts. Please try again later.' },
+          { status: 429 }
+        )
+      }
+    }
+
     // Check auth status
     const { data: { session }, error } = await supabase.auth.getSession()
     console.log('Auth check - Session exists:', !!session, 'Path:', pathname)
@@ -59,6 +102,43 @@ export async function middleware(request: NextRequest) {
     if (error) {
       console.error('Session error:', error)
       throw error
+    }
+
+    // Handle session management
+    if (session?.user) {
+      const userId = session.user.id
+      const sessionId = session.access_token
+
+      // Initialize user's sessions if not exists
+      if (!activeSessions.has(userId)) {
+        activeSessions.set(userId, new Set())
+      }
+
+      const userSessions = activeSessions.get(userId)!
+
+      // Check concurrent sessions limit
+      if (!userSessions.has(sessionId) && userSessions.size >= MAX_CONCURRENT_SESSIONS) {
+        // Remove oldest session
+        const oldestSession = Array.from(userSessions)[0]
+        userSessions.delete(oldestSession)
+      }
+
+      // Add current session
+      userSessions.add(sessionId)
+
+      // Update session timestamp
+      const sessionCookie = request.cookies.get('supabase-auth-token')
+      if (sessionCookie) {
+        response.cookies.set({
+          name: 'supabase-auth-token',
+          value: sessionCookie.value,
+          path: '/',
+          secure: request.url.startsWith('https://'),
+          sameSite: 'lax',
+          httpOnly: true,
+          maxAge: SESSION_TIMEOUT_MINUTES * 60
+        })
+      }
     }
 
     const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
@@ -76,22 +156,9 @@ export async function middleware(request: NextRequest) {
     if (!session && !isPublicPath) {
       console.log('Unauthorized access attempt - redirecting to login')
       const redirectUrl = new URL('/admin/login', request.url)
-      // Store the original URL to redirect back after login
       redirectUrl.searchParams.set('redirectTo', encodeURIComponent(pathname))
       return NextResponse.redirect(redirectUrl)
     }
-
-    // Preserve all existing cookies
-    const existingCookies = request.cookies.getAll()
-    existingCookies.forEach(cookie => {
-      const { name, value, ...cookieOptions } = cookie
-      response.cookies.set({
-        name,
-        value,
-        ...cookieOptions,
-        path: '/',
-      })
-    })
 
     return response
   } catch (error) {
@@ -101,9 +168,8 @@ export async function middleware(request: NextRequest) {
       .filter(cookie => cookie.name.includes('supabase.auth'))
     
     sessionCookies.forEach(cookie => {
-      const { name } = cookie
       response.cookies.set({
-        name,
+        name: cookie.name,
         value: '',
         path: '/',
         expires: new Date(0),
@@ -126,4 +192,4 @@ export const config = {
     '/admin',
     '/admin/:path*',
   ],
-} 
+}

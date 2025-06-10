@@ -35,7 +35,7 @@ export default function TermBanner({
   const getVariantClasses = () => {
     switch (variant) {
       case 'gradient':
-        return 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white';
+        return 'bg-gradient-to-r from-[#2596be] to-[#1a7290] text-white';
       case 'accent':
         return 'bg-amber-500 text-white';
       case 'dark':

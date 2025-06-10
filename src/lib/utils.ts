@@ -68,3 +68,31 @@ export const isClient = typeof window !== 'undefined'
  * Check if the code is running on the server
  */
 export const isServer = typeof window === 'undefined'
+
+interface FetchOptions extends RequestInit {
+  csrfToken?: string;
+}
+
+export async function fetchWithAuth(url: string, options: FetchOptions = {}) {
+  const { csrfToken, ...fetchOptions } = options;
+  
+  const headers = new Headers(fetchOptions.headers);
+  
+  // Add CSRF token for mutation requests
+  if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(fetchOptions.method || 'GET')) {
+    headers.set('X-CSRF-Token', csrfToken);
+  }
+
+  const response = await fetch(url, {
+    ...fetchOptions,
+    headers,
+    credentials: 'include', // Include cookies for auth
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'An error occurred' }));
+    throw new Error(error.message || 'Request failed');
+  }
+
+  return response;
+}

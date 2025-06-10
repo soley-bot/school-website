@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+  <!-- Outer circle -->
+  <circle cx="75" cy="75" r="70" fill="#ffffff" stroke="#2596be" stroke-width="3" />
+  
+  <!-- S letterform - stylized modern design -->
+  <path d="M 105,55 C 105,35 85,25 75,25 C 55,25 45,40 45,55 C 45,70 55,80 75,85 C 95,90 105,100 105,115 C 105,130 95,145 75,145 C 55,145 45,130 45,115" 
+        fill="none" 
+        stroke="#2596be" 
+        stroke-width="12" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+        
+  <!-- Academic icon element -->
+  <circle cx="75" cy="75" r="10" fill="#2596be" opacity="0.2" />
+</svg> 

@@ -26,6 +26,7 @@ type NewProgramContent = Omit<ProgramContent, 'id'>;
 export default function ProgramsSection() {
   const router = useRouter()
   const [programs, setPrograms] = useState<ProgramContent[]>([])
+  const [deletedProgramIds, setDeletedProgramIds] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -121,6 +122,13 @@ export default function ProgramsSection() {
   }
 
   const handleRemoveProgram = (index: number) => {
+    const program = programs[index]
+    
+    // If it's a real database entry (not a temporary one), track its ID for deletion
+    if (program.id && !program.id.startsWith('temp_')) {
+      setDeletedProgramIds(prev => [...prev, program.id])
+    }
+    
     const newPrograms = [...programs]
     newPrograms.splice(index, 1)
     setPrograms(newPrograms)
@@ -172,7 +180,18 @@ export default function ProgramsSection() {
 
     try {
       const supabase = getClientComponentClient()
-      // Filter out temporary IDs and ensure all entries have valid UUIDs
+      
+      // 1. Delete programs that were removed
+      if (deletedProgramIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('programs')
+          .delete()
+          .in('id', deletedProgramIds)
+          
+        if (deleteError) throw deleteError
+      }
+      
+      // 2. Filter out temporary IDs and ensure all entries have valid UUIDs
       const programsToSave = programs.map(program => {
         const { id, ...rest } = program
         return {
@@ -183,12 +202,16 @@ export default function ProgramsSection() {
         }
       })
 
+      // 3. Upsert remaining programs
       const { error: upsertError } = await supabase
         .from('programs')
         .upsert(programsToSave)
 
       if (upsertError) throw upsertError
 
+      // Reset deleted IDs after successful save
+      setDeletedProgramIds([])
+      
       toast.success('Programs saved successfully!')
       setSaveSuccess(true)
       await loadPrograms() // Reload to get new IDs

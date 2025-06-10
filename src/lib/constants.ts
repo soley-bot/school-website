@@ -38,8 +38,8 @@ export const colors = {
 }
 
 export const fonts = {
-  heading: 'var(--font-inter)',
-  body: 'var(--font-inter)',
+  heading: 'var(--font-montserrat)',
+  body: 'var(--font-montserrat)',
 }
 
 export const spacing = {
@@ -55,4 +55,4 @@ export const spacing = {
     lg: '6rem',
     xl: '8rem',
   },
-} 
+}

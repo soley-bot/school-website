@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/database.types'
+import { csrfMiddleware } from '@/lib/csrf'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -59,61 +60,170 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  try {
-    if (!supabaseAdmin) {
+  return csrfMiddleware(request, async () => {
+    try {
+      if (!supabaseAdmin) {
+        return NextResponse.json(
+          { error: 'Supabase admin client not initialized. Check environment variables.' },
+          { status: 500 }
+        )
+      }
+
+      // Get the user session
+      const { data: { session }, error: authError } = await supabaseAnon!.auth.getSession()
+      if (authError || !session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      // Check user role
+      const { data: roleData, error: roleError } = await supabaseAnon!
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (roleError || !roleData) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      if (!['admin', 'editor'].includes(roleData.role)) {
+        return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      }
+
+      const payload = await request.json()
+      const {
+        name,
+        description,
+        theme,
+        slug,
+        type,
+        introduction,
+        schedule,
+        levels,
+        features,
+        course_materials
+      } = payload
+
+      // Enhanced validation
+      if (!name?.trim() || !description?.trim() || !slug?.trim()) {
+        return NextResponse.json({ 
+          error: 'Missing required program fields: name, description, and slug are required' 
+        }, { status: 400 })
+      }
+
+      if (!type || !['english', 'chinese', 'ielts'].includes(type)) {
+        return NextResponse.json({ 
+          error: 'Invalid program type. Must be one of: english, chinese, ielts' 
+        }, { status: 400 })
+      }
+
+      // Insert the program
+      const { data: program, error: insertError } = await supabaseAdmin
+        .from('programs')
+        .insert({
+          name,
+          description,
+          theme,
+          slug,
+          type
+        })
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error('Error inserting program:', insertError)
+        return NextResponse.json(
+          { error: 'Failed to create program' },
+          { status: 500 }
+        )
+      }
+
+      // Insert related data
+      const promises = []
+
+      if (introduction) {
+        promises.push(
+          supabaseAdmin
+            .from('program_content')
+            .insert([{ 
+              program_id: program.id,
+              section: 'introduction',
+              content: introduction
+            }])
+        )
+      }
+
+      if (features?.length > 0) {
+        promises.push(
+          supabaseAdmin
+            .from('program_features')
+            .insert(features.map((feature, index) => ({
+              ...feature,
+              program_id: program.id,
+              sort_order: index
+            })))
+        )
+      }
+
+      if (levels?.length > 0) {
+        promises.push(
+          supabaseAdmin
+            .from('program_levels')
+            .insert(levels.map((level, index) => ({
+              ...level,
+              program_id: program.id,
+              sort_order: index
+            })))
+        )
+      }
+
+      if (schedule) {
+        promises.push(
+          supabaseAdmin
+            .from('program_schedule')
+            .insert([{ ...schedule, program_id: program.id }])
+        )
+      }
+
+      if (course_materials?.length > 0) {
+        promises.push(
+          supabaseAdmin
+            .from('course_materials')
+            .insert(course_materials.map((material, index) => ({
+              ...material,
+              program_id: program.id,
+              sort_order: index
+            })))
+        )
+      }
+
+      // Wait for all related data to be inserted
+      const results = await Promise.allSettled(promises)
+      const errors = results
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => result.reason)
+
+      if (errors.length > 0) {
+        console.error('Errors inserting related data:', errors)
+        // Program was created but some related data failed
+        return NextResponse.json({ 
+          warning: 'Program created but some related data failed to insert',
+          programId: program.id,
+          errors 
+        }, { status: 207 })
+      }
+
+      return NextResponse.json({ 
+        message: "Program created successfully",
+        programId: program.id 
+      })
+
+    } catch (err: any) {
+      console.error('Error in programs POST route:', err)
       return NextResponse.json(
-        { error: 'Supabase admin client not initialized. Check environment variables.' },
+        { error: err.message || 'Internal server error' },
         { status: 500 }
       )
     }
-
-    const payload = await request.json()
-    const {
-      name,
-      description,
-      theme,
-      slug,
-      type,
-      introduction,
-      schedule,
-      levels,
-      features,
-      course_materials
-    } = payload
-
-    if (!name || !description || !slug) {
-      return NextResponse.json({ error: 'Missing required program fields' }, { status: 400 })
-    }
-
-    const programInsertData = {
-      name,
-    };
-    console.log('--- Inserting into programs table (without select): ---', programInsertData);
-
-    const { error: programError } = await supabaseAdmin
-      .from('programs')
-      .insert([programInsertData])
-
-    if (programError) {
-      console.error('Error creating program (insert only):', programError)
-      console.error('Supabase error details:', JSON.stringify(programError, null, 2));
-      return NextResponse.json(
-        { error: `Failed to create program (insert only): ${programError.message}` },
-        { status: 500 }
-      )
-    }
-
-    console.log(`--- Successfully inserted program (basic insert)! ---`);
-
-    console.log('--- Skipping related inserts for debugging ---');
-
-    return NextResponse.json({ message: "Program created successfully (basic insert)" })
-
-  } catch (err: any) {
-    console.error('Error in programs POST route:', err)
-    return NextResponse.json(
-      { error: err.message || 'Internal server error' },
-      { status: 500 }
-    )
-  }
-} 
+  })
+}

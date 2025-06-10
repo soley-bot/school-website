@@ -66,6 +66,20 @@ CREATE TABLE IF NOT EXISTS public.footer_content (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
+-- Add programs table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.programs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    price NUMERIC NOT NULL,
+    features TEXT[] NOT NULL,
+    button_text TEXT NOT NULL,
+    button_link TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
 -- Insert default stats
 INSERT INTO public.stats (id, name, stat, icon)
 VALUES 
@@ -130,4 +144,18 @@ CREATE POLICY "Allow anonymous read access" ON public.term_banner FOR SELECT TO 
 
 -- Create policies for authenticated users to manage content for new tables
 CREATE POLICY "Allow authenticated full access" ON public.hero_content FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow authenticated full access" ON public.term_banner FOR ALL TO authenticated USING (true) WITH CHECK (true); 
+CREATE POLICY "Allow authenticated full access" ON public.term_banner FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Add RLS policies for programs table
+ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for anonymous read access
+CREATE POLICY "Allow anonymous read access" ON public.programs FOR SELECT TO anon USING (true);
+
+-- Create policies for authenticated users to manage content
+CREATE POLICY "Allow authenticated full access" ON public.programs FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Add footer_content RLS policies
+ALTER TABLE public.footer_content ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anonymous read access" ON public.footer_content FOR SELECT TO anon USING (true);
+CREATE POLICY "Allow authenticated full access" ON public.footer_content FOR ALL TO authenticated USING (true) WITH CHECK (true); 

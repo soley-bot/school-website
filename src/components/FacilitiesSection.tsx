@@ -38,7 +38,7 @@ export default function FacilitiesSection({ facilities: initialFacilities }: Pro
 
   if (isLoading) {
     return (
-      <section className="bg-gray-50 py-16">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">Our Facilities</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -61,7 +61,7 @@ export default function FacilitiesSection({ facilities: initialFacilities }: Pro
   // Show default content if no facilities are available
   if (facilities.length === 0) {
     return (
-      <section className="bg-gray-50 py-16">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">Our Facilities</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -121,7 +121,7 @@ export default function FacilitiesSection({ facilities: initialFacilities }: Pro
   }
 
   return (
-    <section className="bg-gray-50 py-16">
+    <section className="py-16">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12">Our Facilities</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

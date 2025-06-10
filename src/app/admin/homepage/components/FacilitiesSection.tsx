@@ -44,30 +44,59 @@ export default function FacilitiesSection() {
 
   async function handleImageUpload(file: File) {
     try {
+      if (!file) {
+        throw new Error('No file selected')
+      }
+
       if (!file.type.startsWith('image/')) {
         throw new Error('Please upload an image file')
       }
 
-      const supabase = getAdminClient()
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Image size must be less than 5MB')
+      }
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const supabase = getAdminClient()
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      const validExts = ['jpg', 'jpeg', 'png', 'webp']
+      
+      if (!fileExt || !validExts.includes(fileExt)) {
+        throw new Error('Please upload a JPG, PNG or WebP image')
+      }
+
       const fileName = `${uuidv4()}.${fileExt}`
 
       const { error: uploadError, data } = await supabase.storage
         .from('facilities')
         .upload(fileName, file, {
-          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`
+          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+          cacheControl: '3600',
+          upsert: false
         })
 
       if (uploadError) {
-        console.error("Error uploading image:", uploadError)
+        if (uploadError.message.includes('duplicate')) {
+          throw new Error('A file with this name already exists')
+        }
         throw uploadError
       }
 
-      return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facilities/${fileName}`
+      if (!data?.path) {
+        throw new Error('Upload succeeded but no path returned')
+      }
+
+      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facilities/${fileName}`
+      
+      // Verify the uploaded image is accessible
+      const response = await fetch(imageUrl)
+      if (!response.ok) {
+        throw new Error('Image upload succeeded but file is not accessible')
+      }
+
+      return imageUrl
     } catch (error) {
       console.error('Error uploading image:', error)
-      throw error
+      throw new Error(error instanceof Error ? error.message : 'Failed to upload image')
     }
   }
 
@@ -315,4 +344,4 @@ export default function FacilitiesSection() {
       )}
     </div>
   )
-} 
+}

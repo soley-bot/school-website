@@ -66,15 +66,16 @@ export default function AcademicsAdmin() {
     setChannel(newChannel)
 
     return () => {
-      if (supabase && newChannel) {
-         supabase.removeChannel(newChannel)
-           .then(status => console.log('Unsubscribed from channel:', status))
-           .catch(error => console.error('Error unsubscribing:', error));
-      } else if (channel) {
-        supabase?.removeChannel(channel)
-          .then(status => console.log('Unsubscribed from channel (fallback):', status))
-          .catch(error => console.error('Error unsubscribing (fallback):', error));
+      const cleanup = async () => {
+        try {
+          if (newChannel) {
+            await supabase.removeChannel(newChannel)
+          }
+        } catch (error) {
+          console.error('Error cleaning up subscription:', error)
+        }
       }
+      cleanup()
     }
   }, [supabase])
 
@@ -334,4 +335,4 @@ export default function AcademicsAdmin() {
       </div>
     </div>
   )
-} 
+}

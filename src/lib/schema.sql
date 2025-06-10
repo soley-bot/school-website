@@ -140,6 +140,49 @@ create policy "Allow authenticated update" on public.program_content
 create policy "Allow authenticated delete" on public.program_content
   for delete using (auth.role() = 'authenticated');
 
+-- Create user_roles table
+create table if not exists public.user_roles (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade,
+  role text not null check (role in ('admin', 'editor', 'viewer')),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id)
+);
+
+-- Enable RLS on user_roles
+alter table public.user_roles enable row level security;
+
+-- Allow users to read their own role
+create policy "Users can read own role" on public.user_roles
+  for select using (auth.uid() = user_id);
+
+-- Allow admins to manage all roles
+create policy "Admins can manage roles" on public.user_roles
+  for all using (
+    exists (
+      select 1 from public.user_roles
+      where user_id = auth.uid() and role = 'admin'
+    )
+  );
+
+-- Update existing policies to check for appropriate roles
+create or replace policy "Allow editor and admin updates" on public.programs
+  for update using (
+    exists (
+      select 1 from public.user_roles
+      where user_id = auth.uid() and role in ('admin', 'editor')
+    )
+  );
+
+create or replace policy "Allow admin deletes" on public.programs
+  for delete using (
+    exists (
+      select 1 from public.user_roles
+      where user_id = auth.uid() and role = 'admin'
+    )
+  );
+
 -- Add updated_at trigger function
 create or replace function public.handle_updated_at()
 returns trigger as $$
@@ -346,4 +389,4 @@ create trigger handle_updated_at
 create trigger handle_updated_at
   before update on public.program_pages_materials
   for each row
-  execute function public.handle_updated_at(); 
+  execute function public.handle_updated_at();

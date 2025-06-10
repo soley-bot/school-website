@@ -19,8 +19,20 @@
   main {
     @apply flex-grow;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-medium tracking-tight;
+  h1 {
+    @apply text-4xl sm:text-5xl font-bold tracking-tight text-gray-900;
+  }
+  h2 {
+    @apply text-3xl sm:text-4xl font-semibold tracking-tight text-gray-900;
+  }
+  h3 {
+    @apply text-2xl font-semibold tracking-tight text-gray-900;
+  }
+  h4 {
+    @apply text-xl font-semibold tracking-tight text-gray-900;
+  }
+  p {
+    @apply text-base text-gray-600 leading-relaxed;
   }
 }
 
@@ -28,19 +40,50 @@
   .container {
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
+  
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium 
+           shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
+  
+  .btn-primary {
+    @apply bg-brand-primary text-white hover:bg-brand-secondary 
+           focus:ring-brand-primary hover:shadow-md;
+  }
+  
   .btn-secondary {
-    @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50;
+    @apply bg-white text-gray-700 border border-gray-300 
+           hover:bg-gray-50 hover:shadow-sm focus:ring-gray-500;
   }
+  
+  .btn-accent {
+    @apply bg-accent-primary text-white hover:bg-accent-secondary 
+           focus:ring-accent-primary hover:shadow-md;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-card hover:shadow-hover 
+           transition-all duration-300 animate-fade-in;
+  }
+  
   .input {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary focus:ring-brand-primary sm:text-sm;
+    @apply block w-full rounded-md border-gray-300 shadow-sm text-gray-900
+           focus:ring-2 focus:ring-brand-primary focus:border-brand-primary sm:text-sm
+           transition-colors duration-200;
+  }
+  
+  .link {
+    @apply text-brand-primary hover:text-brand-secondary underline-offset-4
+           hover:underline transition-colors duration-200;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  .gradient-mask-b {
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   }
 }
